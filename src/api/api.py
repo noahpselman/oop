@@ -1,16 +1,16 @@
-from flask import Flask
-from src.api.login import login
+from flask import Flask, render_template
+from src.api.user import user
 
 
 app = Flask(__name__)
-app.register_blueprint(login, url_prefix='/user')
+app.register_blueprint(user, url_prefix='/user')
 
 
-@app.route('/')
+@app.route('/api')
 def index():
-    return render_template('index.html')
+    return {"message": "Welcome to the university website"}
 
 
 @app.route('/login', methods=['GET'])
 def go_to_login():
-    return {""}
+    return {"message": "going to the login page"}
