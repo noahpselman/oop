@@ -13,7 +13,7 @@ class Authenticator():
         else:
             Authenticator.__instance = self
 
-    def authenticate_user(self, username: str, password: str):
+    def authenticate_user(self, user_id: str, password: str):
         """
         obviously this is just a placeholder login
         """

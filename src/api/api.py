@@ -11,6 +11,3 @@ def index():
     return {"message": "Welcome to the university website"}
 
 
-@app.route('/login', methods=['GET'])
-def go_to_login():
-    return {"message": "going to the login page"}
