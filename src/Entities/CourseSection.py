@@ -8,9 +8,15 @@ class CourseSection():
 
     def __init__(self, **kwargs) -> None:
 
-        self._course = kwargs['course']
-        self._timeslot = kwargs['timeslot']
-        self._open_enrollment: bool = False
+        self.section_number: str = kwargs['section_number']
+        self._course: str = kwargs['course']
+        self._timeslot: Timeslot = kwargs['timeslot']
+        self._lead_instructor: Instructor = kwargs['lead_instructor']
+        self._enrollment_open: bool = kwargs['enrollment_open']
+
+    @property
+    def section_number(self):
+        return self._section_number
 
     @property
     def quarter(self):
@@ -23,14 +29,6 @@ class CourseSection():
     @property
     def open_enrollment(self):
         return self._open_enrollment
-
-    @quarter.setter
-    def quarter(self, new_quarter):
-        self._quarter = new_quarter
-
-    @timeslot.setter
-    def timeslot(self, new_timeslot):
-        self._timeslot = new_timeslot
 
     @open_enrollment.setter
     def open_enrollment(self, new_open_enrollment):

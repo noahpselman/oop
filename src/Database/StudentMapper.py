@@ -1,4 +1,5 @@
 from __future__ import annotations
+from src.Factories.CourseSectionFactory import CourseSectionFactory
 from src.Factories.EnrollmentFactory import EnrollmentFactory
 from src.Database.DatabaseHelper import DatabaseHelper
 from typing import List
@@ -60,6 +61,8 @@ class StudentMapper(Mapper):
         student.exp_grad_date = student_data['expected_graduation']
         student.major = student_data['major']
 
+        # TODO move these to a separate function so they can be
+        # lazy loaded
         restrictions = self.db_helper.load_student_restrictions(
             student.user_data.id)
 
@@ -73,11 +76,17 @@ class StudentMapper(Mapper):
         db_helper = DatabaseHelper.getInstance()
         loaded_data = db_helper.load_current_enrollment_by_student_id(
             student.user_data.id)
-        print("loaded data from student mapper:", loaded_data)
-        enrollment_factory = EnrollmentFactory.getInstance()
-        enrollments = enrollment_factory.build_enrollments(loaded_data)
-        print("enrollments from student mapper", enrollments)
-        return enrollments
+        print("loaded data from load_current_courses", loaded_data)
+        course_section_factory = CourseSectionFactory.getInstance()
+        course_section_factory.build_course_section(**loaded_data[0])
+
+        # loaded_data = db_helper.load_current_enrollment_by_student_id(
+        #     student.user_data.id)
+        # print("loaded data from student mapper:", loaded_data)
+        # enrollment_factory = EnrollmentFactory.getInstance()
+        # enrollments = enrollment_factory.build_enrollments(loaded_data)
+        # print("enrollments from student mapper", enrollments)
+        # return enrollments
 
     def load_course_history(self, student: Student):
         from src.Entities.Student import Student

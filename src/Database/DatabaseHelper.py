@@ -18,6 +18,9 @@ LOAD_ENROLLMENT_COLUMNS = ("section_number", "course_id", "department",
 
 LOAD_QUARTER_COLUMNS = ("name", "start_date", "end_date")
 
+LOAD_COURSE_COLUMNS = ("course_id", "department", "name")
+
+
 class DatabaseHelper():
 
     __instance = None
@@ -85,13 +88,15 @@ class DatabaseHelper():
     def load_current_enrollment_by_student_id(self, student_id: str):
         print("load enrollment by student id called from db helper")
         result = self.db.load_current_enrollment_by_student_id(student_id)
-        result_list = [self.unpack_db_result(LOAD_ENROLLMENT_COLUMNS, r) for r in result]
+        result_list = [self.unpack_db_result(
+            LOAD_ENROLLMENT_COLUMNS, r) for r in result]
         return result_list
 
     def load_enrollment_history_by_student_id(self, student_id: str):
         print("load enrollment history by student id called from db helper")
         result = self.db.load_enrollment_history_by_student_id(student_id)
-        result_list = [self.unpack_db_result(LOAD_ENROLLMENT_COLUMNS, r) for r in result]
+        result_list = [self.unpack_db_result(
+            LOAD_ENROLLMENT_COLUMNS, r) for r in result]
         return result_list
 
     def get_current_quarter(self, today: datetime.date):
@@ -101,11 +106,11 @@ class DatabaseHelper():
     def get_past_quarters(self, today: datetime.date):
         result = self.db.get_past_quarters(today)
         # print("result from database helper:", result)
-        result_list = [self.unpack_db_result(LOAD_QUARTER_COLUMNS, r) for r in result]
+        result_list = [self.unpack_db_result(
+            LOAD_QUARTER_COLUMNS, r) for r in result]
         return result_list
 
-    def load_course_history(self, university_id: str) -> List[str]:
-        """
-        TODO after i put historical courses in the db
-        """
-        pass
+    def load_course_by_course_id(self, **kwargs):
+        print(kwargs)
+        result = self.db.load_course_by_course_id(**kwargs)
+        return self.unpack_db_result(LOAD_COURSE_COLUMNS, result)

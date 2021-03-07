@@ -101,6 +101,36 @@ class Database:
         """
         return self.fetch_all(query, (today,))
 
+    def load_current_courses_for_student(self, student_id):
+        query = """
+        SELECT section_number, department, course_id
+        FROM enrollmens
+        """
+
+    def load_course_by_course_id(self, course_id: str, department: str):
+        query = """
+        SELECT course_id, department, name
+        FROM course
+        WHERE course_id = %s AND department = %s
+        """
+        return self.fetch_one(query, (course_id, department))
+
+    def load_course_section(self, **kwargs):
+        query = """
+        SELECT section_number, department, course_id,
+        quarter, timeslot, lead_instructor, enrollment_open
+        FROM course_section
+        WHERE section_number = %s AND
+        department = %s AND
+        course_id = %s AND
+        quarter = %s
+        """
+        course_id = kwargs['course_id']
+        department = kwargs['department']
+        section_number = kwargs['section_number']
+        quarter = kwargs['quarter']
+        return self.fetch_one(query, (section_number, department, course_id, quarter))
+
 
 STUDENT_TABLE_NAMES = {
     "STUDENT_TABLE_NAME": "student",
