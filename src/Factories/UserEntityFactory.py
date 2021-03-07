@@ -4,6 +4,7 @@ from src.Entities.User import User
 from src.Database.InstructorMapper import InstructorMapper
 from src.Database.StudentMapper import StudentMapper
 
+
 class UserEntityFactory():
     """
     Builds specific entities representing users from User object
@@ -30,17 +31,16 @@ class UserEntityFactory():
         else:
             UserEntityFactory.__instance = self
 
-
     def __build_user(self, user_id: str):
         return User(user_id)
 
     def build_from_id(self, user_id: str) -> ControlleeInterface:
 
         user = self.__build_user(user_id)
-        mapper = StudentMapper.getInstance()
-        student = mapper.load(user)
+        mapper = self.USER_MAPPERS[user.user_type].getInstance()
+        entity = mapper.load(user)
 
-        return student
+        return entity
 
         # Mapper = self.USER_MAPPERS[user.type]
         # mapper = Mapper()

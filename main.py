@@ -6,7 +6,6 @@ from src.Constants.Restrictions import LibraryRestriction
 from src.Factories.UserEntityFactory import UserEntityFactory
 import psycopg2 as pg
 from psycopg2.extras import DictCursor
-import json
 
 from src.db_conf import db_conf
 from src.Database.Database import Database
@@ -39,12 +38,15 @@ if __name__ == "__main__":
 
     print("db_helper:", db_helper)
 
-    # uef = UserEntityFactory.getInstance()
-    # student = uef.build_from_id('89')
-    # print("past courses", student.course_history)
+    uef = UserEntityFactory.getInstance()
+    student = uef.build_from_id('89')
+    print("past courses", student.course_history)
+    print("current courses", student.current_courses)
+    print("timeslot", student.current_courses[0].timeslot)
+    print("instructor", student.current_courses[0].instructor)
 
-    from src.util import get_past_quarters
-    get_past_quarters()
+    # from src.util import get_past_quarters
+    # get_past_quarters()
 
     # controller = MainController.getInstance()
     # print(controller.CURRENT_QUARTER)

@@ -78,7 +78,9 @@ class StudentMapper(Mapper):
             student.user_data.id)
         print("loaded data from load_current_courses", loaded_data)
         course_section_factory = CourseSectionFactory.getInstance()
-        course_section_factory.build_course_section(**loaded_data[0])
+        course_sections = course_section_factory.build_course_sections(
+            loaded_data)
+        return course_sections
 
         # loaded_data = db_helper.load_current_enrollment_by_student_id(
         #     student.user_data.id)

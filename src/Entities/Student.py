@@ -103,8 +103,8 @@ class Student():
     def __load_current_courses(self):
         print("loading current courses in student")
         mapper = StudentMapper.getInstance()
-        enrollments = mapper.load_current_courses(self)
-        self._current_courses = enrollments
+        current_courses = mapper.load_current_courses(self)
+        self._current_courses = current_courses
         # enrollment_factory = EnrollmentFactory.getInstance()
         # enrollment_factory.build(self)
 
@@ -140,7 +140,7 @@ class Student():
         }
         return result
 
-    def _load(self):
-        print("student calling load")
-        mapper = StudentMapper.getInstance()
-        mapper.load(self)
+    # def _load(self):
+    #     print("student calling load")
+    #     mapper = StudentMapper.getInstance()
+    #     mapper.load(self)

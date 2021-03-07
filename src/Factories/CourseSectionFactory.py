@@ -1,3 +1,4 @@
+from src.Database.CourseSectionMapper import CourseSectionMapper
 from src.Database.CourseMapper import CourseMapper
 from src.Entities.TimeSlot import TimeSlot
 from src.Entities.CourseSection import CourseSection
@@ -25,21 +26,33 @@ class CourseSectionFactory():
 
         self.warehouse = CourseSectionWarehouse.getInstance()
 
+    def build_course_sections(self, data):
+        """
+        data is list of dicts in which key-val pairs correspond to
+        kwargs in build course section
+        """
+        print("data", data)
+        return [self.build_course_section(**row) for row in data]
+
     def build_course_section(self, **kwargs):
         """
         kwargs are the arguments to the constructor of a course section
         """
         print("build course section called in course seciton factory")
+        course_section_mappper = CourseSectionMapper()
+        course_section = course_section_mappper.load(**kwargs)
+        return course_section
 
-        course = self.__build_course(
-            course_id=kwargs['course_id'], department=kwargs['department'])
-        kwargs['course'] = course
-        print(course)
+        # course = self.__build_course(
+        #     course_id=kwargs['course_id'], department=kwargs['department'])
+        # kwargs['course'] = course
+        # print(course)
+
         # timeslot = TimeSlot()
         # course_section = CourseSection(kwargs)
         # mapper = CourseSectionMapper.getIn
 
-    def __build_course(self, course_id: str, department: str):
-        mapper = CourseMapper.getInstance()
-        course = mapper.load(course_id=course_id, department=department)
-        return course
+    # def __build_course(self, course_id: str, department: str):
+    #     mapper = CourseMapper.getInstance()
+    #     course = mapper.load(course_id=course_id, department=department)
+    #     return course

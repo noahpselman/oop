@@ -61,13 +61,7 @@ class User():
         return result
 
     def __repr__(self):
-        return f"""
-        User Object
-        {self.id}
-        {self.full_name}
-        {self.email}
-        {self.user_type}
-        """
+        return f"User {self.id}: {self.full_name}"
 
     # def __downcast(self):
     #     """

@@ -101,11 +101,11 @@ class Database:
         """
         return self.fetch_all(query, (today,))
 
-    def load_current_courses_for_student(self, student_id):
-        query = """
-        SELECT section_number, department, course_id
-        FROM enrollmens
-        """
+    # def load_current_courses_for_student(self, student_id):
+    #     query = """
+    #     SELECT section_number, department, course_id
+    #     FROM enrollments
+    #     """
 
     def load_course_by_course_id(self, course_id: str, department: str):
         query = """
@@ -115,10 +115,15 @@ class Database:
         """
         return self.fetch_one(query, (course_id, department))
 
-    def load_course_section(self, **kwargs):
+    def load_course_section_by_id(self, **kwargs):
+        """
+        kwargs must include (all str) course_id, department,
+        section_number, quarter
+        """
         query = """
         SELECT section_number, department, course_id,
-        quarter, timeslot, lead_instructor, enrollment_open
+        quarter, timeslot, enrollment_open,
+        state, instructor_id, capacity
         FROM course_section
         WHERE section_number = %s AND
         department = %s AND
@@ -131,11 +136,19 @@ class Database:
         quarter = kwargs['quarter']
         return self.fetch_one(query, (section_number, department, course_id, quarter))
 
+    def load_instructor_by_id(self, instructor_id: str):
+        query = """
+        SELECT university_id, department
+        FROM instructor
+        WHERE university_id = %s
+        """
+        print("instructor id for db", instructor_id)
+        return self.fetch_one(query, (instructor_id, ))
 
-STUDENT_TABLE_NAMES = {
-    "STUDENT_TABLE_NAME": "student",
-    "STUDENT_PK": "university_id",
-    "STUDENT_COLUMN_EXPECTED_GRADUATION": "expected_graduation",
-    "STUDENT_COLUMN_MAJOR": "major",
-    "STUDENT_COLUMN_FULLTIME": "maximum_enrollment"
-}
+    def load_timeslot_by_id(self, timeslot_id: str):
+        query = """
+        SELECT days, starttime, endtime
+        FROM timeslot
+        WHERE id = %s
+        """
+        return self.fetch_one(query, (timeslot_id, ))

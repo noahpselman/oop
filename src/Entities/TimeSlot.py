@@ -1,13 +1,17 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import time
+from typing import List
 
 
 class TimeSlot():
 
     def __init__(self, **kwargs) -> None:
-        self.start_time: time = kwargs['start_time']
-        self.end_time: time = kwargs['end_time']
-        self.days: List[str] = kwargs['days']
+        """
+        kwargs are just the things you see in this here constructor
+        """
+        self._start_time: time = kwargs['start_time']
+        self._end_time: time = kwargs['end_time']
+        self._days: List[str] = kwargs['days']
 
     @property
     def start_time(self):

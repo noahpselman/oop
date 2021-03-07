@@ -20,6 +20,14 @@ LOAD_QUARTER_COLUMNS = ("name", "start_date", "end_date")
 
 LOAD_COURSE_COLUMNS = ("course_id", "department", "name")
 
+LOAD_COURSE_SECTION_COLUMNS = ("section_number", "department", "course_id",
+                               "quarter", "timeslot", "enrollment_open", "state",
+                               "instructor_id", "capacity")
+
+LOAD_INSTRUCTOR_COLUMNS = ("university_id", "department")
+
+LOAD_TIMESLOT_COLUMNS = ("days", "starttime", "endtime")
+
 
 class DatabaseHelper():
 
@@ -111,6 +119,26 @@ class DatabaseHelper():
         return result_list
 
     def load_course_by_course_id(self, **kwargs):
-        print(kwargs)
+        """
+        kwargs must include course_id (str) and department (str)
+        """
+        # print(kwargs)
         result = self.db.load_course_by_course_id(**kwargs)
         return self.unpack_db_result(LOAD_COURSE_COLUMNS, result)
+
+    def load_instructor_by_id(self, instructor_id: str):
+        print("db_helper load instructor arg", instructor_id)
+        result = self.db.load_instructor_by_id(instructor_id)
+        return self.unpack_db_result(LOAD_INSTRUCTOR_COLUMNS, result)
+
+    def load_timeslot_by_id(self, timeslot_id: str):
+        result = self.db.load_timeslot_by_id(timeslot_id)
+        return self.unpack_db_result(LOAD_TIMESLOT_COLUMNS, result)
+
+    def load_course_section_by_id(self, **kwargs):
+        """
+        kwargs must include (all str) course_id, department,
+        section_number, quarter
+        """
+        result = self.db.load_course_section_by_id(**kwargs)
+        return self.unpack_db_result(LOAD_COURSE_SECTION_COLUMNS, result)
