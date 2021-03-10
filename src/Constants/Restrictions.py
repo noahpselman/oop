@@ -1,7 +1,12 @@
 from abc import ABC
 
 
-class Restriction():
+class RestrictionMeta(type):
+    def __repr__(cls):
+        return cls.__name__
+
+
+class Restriction(RestrictionMeta):
     pass
 
 

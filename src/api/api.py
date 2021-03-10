@@ -3,6 +3,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 controller = MainController.getInstance()
+controller.setup_db()
 # app.register_blueprint(user, url_prefix='/user')
 
 
@@ -22,8 +23,9 @@ def authenticate():
         password = data.get('password', '')
         result = controller.login(user_id, password)
         if result:
-            data = controller.setup_user(user_id)
-        return {"loginSuccess": data}
+            user_data = controller.setup_user(user_id)
+            print("user data:", user_data)
+        return {"loginSuccess": user_data}
 
     elif request.method == 'GET':
         pass

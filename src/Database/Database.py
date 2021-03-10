@@ -51,14 +51,53 @@ class Database:
         # return cur.fetchone()
 
     def fetch_one(self, query, args):
+
         cur = self.conn.cursor()
-        cur.execute(query, args)
-        return cur.fetchone()
+        try:
+            cur.execute(query, args)
+            result = cur.fetchone()
+        except Exception as e:
+            print(e)
+            result = None
+        finally:
+            cur.close()
+            return result
 
     def fetch_all(self, query, args):
+
         cur = self.conn.cursor()
-        cur.execute(query, args)
-        return cur.fetchall()
+        try:
+            cur.execute(query, args)
+            result = cur.fetchall()
+        except Exception as e:
+            print(e)
+            result = None
+        finally:
+            cur.close()
+            return result
+
+    # def do_query(self, query, args):
+    #     cur = self.conn.cursor()
+    #     try:
+    #         cur.execute(query, args)
+    #     except Exception:
+    #         raise
+    #     finally:
+    #         cur.close()
+    #         return cur
+
+    def execute_insert_delete(self, query, vals):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(query, vals)
+            self.conn.commit()
+            result = True
+        except Exception as e:
+            print(e)
+            result = False
+        finally:
+            cur.close()
+            return result
 
     def load_student_restrictions(self, university_id):
         query = """
@@ -67,19 +106,37 @@ class Database:
         """
         return self.fetch_all(query, (university_id,))
 
-    def load_current_enrollment_by_student_id(self, student_id: str):
+    # def load_current_enrollment_by_student_id(self, student_id: str):
+    #     query = """
+    #     SELECT section_number, course_id, department,
+    #     quarter, student_id, type, state
+    #     FROM enrollment
+    #     WHERE student_id = %s AND quarter = %s
+    #     """
+    #     return self.fetch_all(query, (student_id, get_current_quarter()))
+
+    def load_enrollment_by_student_quarter(self, student_id: str, quarter: str):
         query = """
         SELECT section_number, course_id, department,
-        quarter, student_id, type
+        quarter, student_id, type, state
         FROM enrollment
         WHERE student_id = %s AND quarter = %s
         """
-        return self.fetch_all(query, (student_id, get_current_quarter()))
+        return self.fetch_all(query, (student_id, quarter))
+
+    def load_timeslots_by_student_quarter(self, student_id: str, quarter: str):
+        query = """
+        SELECT e.section_number, e.course_id, e.department,
+        e.quarter, e.student_id, cs.timeslot
+        FROM enrollment e NATURAL JOIN course_section cs JOIN timeslot t on cs.timeslot = t.id
+        WHERE student_id = %s AND quarter = %s
+        """
+        return self.fetch_all(query, (student_id, quarter))
 
     def load_enrollment_history_by_student_id(self, student_id: str):
         query = """
         SELECT section_number, course_id, department,
-        quarter, student_id, type
+        quarter, student_id, type, state
         FROM enrollment
         WHERE student_id = %s AND quarter in %s
         """
@@ -123,7 +180,8 @@ class Database:
         query = """
         SELECT section_number, department, course_id,
         quarter, timeslot, enrollment_open,
-        state, instructor_id, capacity
+        state, instructor_id, capacity,
+        instructor_permission_required
         FROM course_section
         WHERE section_number = %s AND
         department = %s AND
@@ -152,3 +210,55 @@ class Database:
         WHERE id = %s
         """
         return self.fetch_one(query, (timeslot_id, ))
+
+    def load_prereqs_by_course_id(self, course_id: str):
+        query = """
+        SELECT course_id, course_department,
+        prereq_id, prereq_department
+        FROM prereqs
+        WHERE course_id = %s
+        """
+        return self.fetch_all(query, (course_id, ))
+
+    def load_enrollment_total_for_course_section(self, **kwargs):
+        query = """
+        SELECT COUNT(*)
+        FROM enrollment
+        WHERE section_number = %s
+        AND course_id = %s
+        AND department = %s
+        AND quarter = %s;
+        """
+        course_id = kwargs['course_id']
+        department = kwargs['department']
+        section_number = kwargs['section_number']
+        quarter = kwargs['quarter']
+        return self.fetch_one(query, (section_number, course_id, department, quarter))
+
+    def insert_new_enrollment(self, enrollment_data: dict):
+
+        query = f"""
+        INSERT INTO enrollment ({', '.join(enrollment_data.keys())})
+        VALUES ({', '.join(['%s']*len(enrollment_data))})
+        """
+
+        return self.execute_insert_delete(query, tuple(enrollment_data.values()))
+
+    def delete_enrollment(self, **kwargs):
+        query = """
+        DELETE FROM enrollment
+        WHERE section_number = %s
+        AND course_id = %s
+        AND department = %s
+        AND quarter = %s
+        AND student_id = %s;
+
+        """
+        course_id = kwargs['course_id']
+        department = kwargs['department']
+        section_number = kwargs['section_number']
+        quarter = kwargs['quarter']
+        student_id = kwargs['student_id']
+        print("database executing drop")
+        return self.execute_insert_delete(
+            query, (section_number, course_id, department, quarter, student_id))

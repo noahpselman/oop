@@ -7,12 +7,12 @@ class FullTimeStudent(Student):
     def __init__(self, user_data):
         super().__init__(user_data)
 
-        self._maximum_enrollment = 3
+        self._max_enrollment = 3
 
     @property
-    def maximum_enrollment(self):
-        return self._maximum_enrollment
+    def max_enrollment(self):
+        return self._max_enrollment
 
-    @maximum_enrollment.setter
-    def maximum_enrollment(self, new_maximum_enrollment):
-        self._maximum_enrollment = new_maximum_enrollment
+    @max_enrollment.setter
+    def max_enrollment(self, new_max_enrollment):
+        self._max_enrollment = new_max_enrollment

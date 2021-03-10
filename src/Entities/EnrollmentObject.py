@@ -1,4 +1,5 @@
 from __future__ import annotations
+from src.util import make_course_index
 
 
 class EnrollmentObject():
@@ -8,8 +9,11 @@ class EnrollmentObject():
         self.section_number = kwargs['section_number']
         self.course_id = kwargs['course_id']
         self.department = kwargs['department']
+        self.course_index = make_course_index(
+            course_id=self.course_id, department=self.department)
         self.quarter = kwargs['quarter']
         self.graded_type = kwargs['type']
+        self.state = kwargs['state']
 
         # having type attributes is a sign that a pattern could be used
         # grading isn't part of my prototype so I'm triaging that re-factor
@@ -22,4 +26,4 @@ class EnrollmentObject():
         return result
 
     def __repr__(self) -> str:
-        return f"student {self.student_id} in {self.department} {self.course_id}/{self.section_number}, quarter: {self.quarter}"
+        return f"Enrollment Obj student {self.student_id} in {self.department} {self.course_id}/{self.section_number}, quarter: {self.quarter}"

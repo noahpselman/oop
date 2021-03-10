@@ -36,11 +36,17 @@ class CourseSectionMapper(Mapper):
         print("course section mapper printing data from database")
         course = self.__build_course(
             course_id=kwargs['course_id'], department=kwargs['department'])
+
+        # TODO
+        # return data to the factory and have the factory create the object
+
         course_section_kwargs = {
             'section_number': course_section_data['section_number'],
             'enrollment_open': course_section_data['enrollment_open'],
             'capacity': course_section_data['capacity'],
             'quarter': course_section_data['quarter'],
+            'state': course_section_data['state'],
+            'instructor_permission_required': course_section_data['instructor_permission_required'],
             'course': course,
             'data': {
                 'timeslot_id': course_section_data['timeslot'],
@@ -49,6 +55,10 @@ class CourseSectionMapper(Mapper):
         }
         course_section = CourseSection(**course_section_kwargs)
         return course_section
+
+    def get_enrollment_total(self, **kwargs):
+        db_helper = DatabaseHelper.getInstance()
+        return db_helper.load_enrollment_total_for_course_section(**kwargs)
 
     def __build_course(self, course_id: str, department: str):
         mapper = CourseMapper.getInstance()

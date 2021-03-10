@@ -4,29 +4,33 @@ handles all database requests
 """
 
 from datetime import datetime
+from src.util import get_current_quarter
 from typing import List
 from src.Database.Database import Database
 
 
-LOAD_STUDENT_COLUMNS = ("university_id", "expected_graduation",
-                        "major", "fulltime", "maximum_enrollment")
+LOAD_STUDENT_COLUMNS = (["university_id", "expected_graduation",
+                         "major", "fulltime", "maximum_enrollment"])
 
-LOAD_USER_COLUMNS = ("university_id", "name", "email", "user_type")
+LOAD_USER_COLUMNS = (["university_id", "name", "email", "user_type"])
 
-LOAD_ENROLLMENT_COLUMNS = ("section_number", "course_id", "department",
-                           "quarter", "student_id", "type")
+LOAD_ENROLLMENT_COLUMNS = (["section_number", "course_id", "department",
+                            "quarter", "student_id", "type", "state"])
 
-LOAD_QUARTER_COLUMNS = ("name", "start_date", "end_date")
+LOAD_QUARTER_COLUMNS = (["name", "start_date", "end_date"])
 
-LOAD_COURSE_COLUMNS = ("course_id", "department", "name")
+LOAD_COURSE_COLUMNS = (["course_id", "department", "name"])
 
-LOAD_COURSE_SECTION_COLUMNS = ("section_number", "department", "course_id",
-                               "quarter", "timeslot", "enrollment_open", "state",
-                               "instructor_id", "capacity")
+LOAD_COURSE_SECTION_COLUMNS = (["section_number", "department", "course_id",
+                                "quarter", "timeslot", "enrollment_open", "state",
+                                "instructor_id", "capacity", "instructor_permission_required"])
 
-LOAD_INSTRUCTOR_COLUMNS = ("university_id", "department")
+LOAD_INSTRUCTOR_COLUMNS = (["university_id", "department"])
 
-LOAD_TIMESLOT_COLUMNS = ("days", "starttime", "endtime")
+LOAD_TIMESLOT_COLUMNS = (["days", "starttime", "endtime"])
+
+LOAD_PREREQ_COLUMNS = (['course_id', 'course_department',
+                        'prereq_id', 'prereq_department'])
 
 
 class DatabaseHelper():
@@ -93,9 +97,18 @@ class DatabaseHelper():
         #     result_dict[col] = result[col]
         # return result_dict
 
-    def load_current_enrollment_by_student_id(self, student_id: str):
+    def load_enrollment_by_student_quarter(self, student_id: str, quarter: str):
         print("load enrollment by student id called from db helper")
-        result = self.db.load_current_enrollment_by_student_id(student_id)
+        result = self.db.load_enrollment_by_student_quarter(
+            student_id, quarter)
+        result_list = [self.unpack_db_result(
+            LOAD_ENROLLMENT_COLUMNS, r) for r in result]
+        return result_list
+
+    def load_timeslots_by_student_quarter(self, student_id: str, quarter: str):
+        print("load enrollement by student quarter classed")
+        result = self.db.load_timeslots_by_student_quarter(
+            student_id, quarter)
         result_list = [self.unpack_db_result(
             LOAD_ENROLLMENT_COLUMNS, r) for r in result]
         return result_list
@@ -141,4 +154,34 @@ class DatabaseHelper():
         section_number, quarter
         """
         result = self.db.load_course_section_by_id(**kwargs)
+        print("load course section by id from dbhelper", result)
         return self.unpack_db_result(LOAD_COURSE_SECTION_COLUMNS, result)
+
+    def load_prereqs_by_course_id(self, course_id: str):
+        result = self.db.load_prereqs_by_course_id(course_id)
+        result_list = [self.unpack_db_result(
+            LOAD_PREREQ_COLUMNS, r) for r in result]
+        return result_list
+
+    def load_enrollment_total_for_course_section(self, **kwargs):
+        result = self.db.load_enrollment_total_for_course_section(**kwargs)
+        return result[0]
+
+    def insert_new_enrollment(self, enrollment_data: dict):
+        """
+        enrollment data is should come in as a dict
+        """
+        print("insert new enrollment called from db helper")
+        success = self.db.insert_new_enrollment(enrollment_data)
+        print(success)
+        return success
+
+    def delete_enrollment(self, **kwargs):
+        """
+        coming soon
+        """
+
+        print("delete enrollment called from db helper")
+        success = self.db.delete_enrollment(**kwargs)
+        print(success)
+        return success

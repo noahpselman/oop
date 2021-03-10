@@ -1,11 +1,16 @@
+from src.Database.DatabaseHelper import DatabaseHelper
+
+
 class Authenticator():
     __instance = None
-    @staticmethod 
+
+    @staticmethod
     def getInstance():
         """ Static access method. """
         if Authenticator.__instance == None:
             Authenticator()
         return Authenticator.__instance
+
     def __init__(self):
         """ Virtually private constructor. """
         if Authenticator.__instance != None:
@@ -17,4 +22,11 @@ class Authenticator():
         """
         obviously this is just a placeholder login
         """
-        return True
+        db_helper = DatabaseHelper.getInstance()
+        try:
+            user_data = db_helper.load_user_by_id(user_id)
+        except:
+            print("user not found")
+            return False
+        else:
+            return user_data['university_id']

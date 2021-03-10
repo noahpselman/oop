@@ -1,4 +1,6 @@
 from __future__ import annotations
+from src.util import get_current_quarter
+from src.Controllers.Registrar import Registrar
 from src.Factories.EnrollmentFactory import EnrollmentFactory
 from src.Database.Mapper import Mapper
 from typing import List
@@ -96,8 +98,8 @@ class Student():
     @property
     def current_courses(self):
         print("current courses getter called from student")
-        if not self._current_courses:
-            self.__load_current_courses()
+        self._current_courses = self.load_courses_by_quarter(
+            get_current_quarter())
         return self._current_courses
 
     def __load_current_courses(self):
@@ -108,26 +110,32 @@ class Student():
         # enrollment_factory = EnrollmentFactory.getInstance()
         # enrollment_factory.build(self)
 
-    def add_current_course(self, new_current_course):
-        curr_courses = self.current_courses
-        if len(curr_courses) >= self.maximum_enrollment:
-            raise StudentFullCourseloadException
+    def load_courses_by_quarter(self, quarter: str):
+        mapper = StudentMapper.getInstance()
+        courses = mapper.load_courses_by_quarter(self, quarter)
+        return courses
 
     @property
     def user_data(self):
         return self._user_data
 
+    @property
     def id(self):
         return self.user_data.id
 
+    @property
     def email(self):
         return self.user_data.email
 
+    @property
+    def full_name(self):
+        return self.user_data.full_name
+
     def register_for_course(self, registrar: Registrar, course_section: CourseSection):
-        return self._state.register_for_course(registrar, course_section)
+        return registrar.register_for_course(self, course_section)
 
     def make_request(self, request_policy: RequestPolicy, course_section: CourseSection):
-        return self._state.make_request(request_policy, course_section)
+        return self.make_request(request_policy, course_section)
 
     def jsonify(self):
         result = {

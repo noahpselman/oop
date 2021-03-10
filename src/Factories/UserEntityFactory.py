@@ -37,6 +37,7 @@ class UserEntityFactory():
     def build_from_id(self, user_id: str) -> ControlleeInterface:
 
         user = self.__build_user(user_id)
+        print(user)
         mapper = self.USER_MAPPERS[user.user_type].getInstance()
         entity = mapper.load(user)
 

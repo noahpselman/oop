@@ -21,3 +21,27 @@ def get_past_quarters():
     return quarters
     # print(quarters)
     # return quarters
+
+
+def make_course_index(**kwargs):
+    """
+    course_id: str
+    department: str
+    """
+    dept = kwargs['department']
+    id = kwargs['course_id']
+    return f"{dept} {id}"
+
+
+def make_section_index(**kwargs):
+    """
+    course_id: str
+    department: str
+    section_number: str
+    quarter: str
+    """
+    dept = kwargs['department']
+    id = kwargs['course_id']
+    sect_id = kwargs['section_number']
+    quarter = kwargs['quarter']
+    return f"{dept} {id}/{sect_id}, {quarter}"

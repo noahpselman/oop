@@ -36,10 +36,10 @@ class CourseSectionFactory():
 
     def build_course_section(self, **kwargs):
         """
-        kwargs are the arguments to the constructor of a course section
+        kwargs must include course_id and department
         """
         print("build course section called in course seciton factory")
-        course_section_mappper = CourseSectionMapper()
+        course_section_mappper = CourseSectionMapper.getInstance()
         course_section = course_section_mappper.load(**kwargs)
         return course_section
 

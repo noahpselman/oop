@@ -23,7 +23,7 @@ class LoginForm extends React.Component {
             headers: { 'Content-Type': 'application/json'},
             body: JSON.stringify({ user_id: this.state.user_id, password: this.state.password })
         };
-        const url = '/user/auth'
+        const url = '/auth'
         fetch(url, requestOptions)
             .then(res => res.json())
             .then(data => console.log(data))
