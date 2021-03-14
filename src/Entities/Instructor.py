@@ -14,8 +14,8 @@ class Instructor():
         self._department: str = department
 
     @property
-    def user_data(self):
-        return self._user_data
+    def email(self):
+        return self._user_data.email
 
     @property
     def department(self):
@@ -28,4 +28,4 @@ class Instructor():
         }
 
     def __repr__(self):
-        return f"Instructor {self.user_data} in {self.department}"
+        return f"Instructor {self._user_data} in {self.department}"

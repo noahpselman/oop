@@ -19,7 +19,7 @@ LOAD_ENROLLMENT_COLUMNS = (["section_number", "course_id", "department",
 
 LOAD_QUARTER_COLUMNS = (["name", "start_date", "end_date"])
 
-LOAD_COURSE_COLUMNS = (["course_id", "department", "name"])
+LOAD_COURSE_COLUMNS = (["course_id", "department", "name", "is_lab", "lab_id"])
 
 LOAD_COURSE_SECTION_COLUMNS = (["section_number", "department", "course_id",
                                 "quarter", "timeslot", "enrollment_open", "state",
@@ -31,6 +31,9 @@ LOAD_TIMESLOT_COLUMNS = (["days", "starttime", "endtime"])
 
 LOAD_PREREQ_COLUMNS = (['course_id', 'course_department',
                         'prereq_id', 'prereq_department'])
+
+SEARCH_COURSE_SECTION_COLUMNS = (['course_id', 'department',
+                                  'section_number', 'quarter'])
 
 
 class DatabaseHelper():
@@ -135,7 +138,8 @@ class DatabaseHelper():
         """
         kwargs must include course_id (str) and department (str)
         """
-        # print(kwargs)
+        print("kwargs in load couse by course_id")
+        print(kwargs)
         result = self.db.load_course_by_course_id(**kwargs)
         return self.unpack_db_result(LOAD_COURSE_COLUMNS, result)
 
@@ -180,8 +184,48 @@ class DatabaseHelper():
         """
         coming soon
         """
-
         print("delete enrollment called from db helper")
         success = self.db.delete_enrollment(**kwargs)
         print(success)
         return success
+
+    def search_course_sections(self, search_dict):
+        """
+        search_dict has the following keys
+            'department': str
+            'course_number': str
+            'instructor': str
+            'quarter': str
+        """
+
+        colnames = {
+            'instructor': 'u.name',
+            'department': 'cs.department',
+            'section_number': 'cs.section_number',
+            'quarter': 'cs.quarter',
+            'course_id': 'cs.course_id'
+        }
+
+        filters = [f'{colnames[k]} = %s' for k in search_dict.keys()]
+        filter_line = ' AND '.join(filters)
+        args = tuple(search_dict.values())
+
+        query = f"""
+        SELECT course_id, cs.department AS department, section_number, quarter
+        FROM course_section cs 
+        JOIN users u
+        ON cs.instructor_id = u.university_id
+        WHERE {filter_line}
+        """
+        print("query from db helper\n", query)
+        print("args", args)
+        result = self.db.search_course_sections(query, args)
+        result_list = [self.unpack_db_result(
+            SEARCH_COURSE_SECTION_COLUMNS, r) for r in result]
+        return result_list
+
+    def load_department_email(self, department: str):
+        print("load department email called with argument", department)
+        result = self.db.load_department_email(department)
+        print("load dpearment email result", result)
+        return result[0]

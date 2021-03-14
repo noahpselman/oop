@@ -26,11 +26,17 @@ class CourseMapper(Mapper):
     def load(self, **kwargs):
         db_helper = DatabaseHelper.getInstance()
         loaded_data = db_helper.load_course_by_course_id(**kwargs)
-        print(loaded_data)
         prereqs = self.__load_prereqs(kwargs['course_id'])
         loaded_data['prereqs'] = prereqs
+        if loaded_data.get('lab_id'):
+            lab = self.__load_lab(lab_id=loaded_data['lab_id'],
+                                  department=loaded_data['department'])
+            loaded_data['lab'] = lab
         course = Course(**loaded_data)
         return course
+
+    def __load_lab(self, *, lab_id: str, department: str):
+        return self.load(course_id=lab_id, department=department)
 
     def __load_prereqs(self, course_id: str):
         db_helper = DatabaseHelper.getInstance()

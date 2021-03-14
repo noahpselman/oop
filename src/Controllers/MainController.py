@@ -1,11 +1,16 @@
+from src.Controllers.RequestManager import RequestManager
+from src.Controllers.SearchManager import SearchManager
+from src.util import parse_section_index
 from src.Database.Database import Database
 import psycopg2 as pg
-from psycopg2.extras import DictCursor
+from psycopg2.extras import DictCursor, register_composite
 from src.db_conf import db_conf
 from src.Entities.Quarter import Quarter
 from src.Database.DatabaseHelper import DatabaseHelper
 from src.Factories.UserEntityFactory import UserEntityFactory
 from src.Authentication.Authenticator import Authenticator
+from src.Factories.CourseSectionFactory import CourseSectionFactory
+from src.Controllers.Registrar import Registrar
 
 
 class MainController():
@@ -24,14 +29,6 @@ class MainController():
             raise Exception("This class is a singleton!")
         else:
             MainController.__instance = self
-
-        # self.CURRENT_QUARTER = self.get_current_quarter()
-
-    # def get_current_quarter(self):
-    #     today = datetime.date(datetime.now())
-    #     db_helper = DatabaseHelper.getInstance()
-    #     quarter_data = db_helper.get_current_quarter(today)
-    #     return Quarter(**quarter_data)
 
     def setup_db(self):
         db_config = db_conf()
@@ -54,6 +51,8 @@ class MainController():
         db.conn = connection
 
     def login(self, user_id, password):
+        print("controller getting user_id", user_id)
+
         auth = Authenticator.getInstance()
         result = auth.authenticate_user(user_id, password)
         return result
@@ -65,8 +64,78 @@ class MainController():
         print('entity from setup_user in main controller', entity)
         return entity
 
-    def create_user(self, user_id: str):
-        return User(user_id)
+    # using * in the parameters is a lesser known technique for making
+    # the following parameters required keyword arguments
+    def setup_course_section(self, *,
+                             section_number: str, course_id: str,
+                             department: str, quarter: str):
+        """
+        course_section_data must include:
+
+        """
+        course_section_factory = CourseSectionFactory.getInstance()
+        course_section = course_section_factory.build_course_section(
+            section_number=section_number, course_id=course_id,
+            department=department, quarter=quarter)
+        return course_section
+
+    # def request_instr_permission(self, *, student_id: str,
+    #                              section_number: str, course_id: str,
+    #                              department: str, quarter: str):
+    #     student = self.setup_user_entity('student_id')
+    #     course_section = self.setup_course_section('course_section')
+    #     factory = RequestFactory.getInstance()
+    #     factory.build('instructor_permission')
+    #     request_manager = RequestManager.getInstance()
+    #     request_manager.execute
+
+        # send email
+        # input into db
+        # return result
+
+    def register(self, data):
+        section_ids = parse_section_index(data['section_index'])
+        course_section = self.setup_course_section(**section_ids)
+        student_id = data['user_id']
+        student = self.setup_user(student_id)
+        registrar = Registrar.getInstance()
+        report = registrar.register_for_course(student, course_section)
+        # i know i shouldn't have the main controller knowing the
+        # structure of the report but i have to do something special
+        # if there's a corresponding lab
+        print(report)
+        if not report['details']['LabValidation']['success']:
+            result = self.search_for_course_section({
+                'quarter': course_section.quarter,
+                'course_id': course_section.lab.course_id})
+            report['search_results'] = result
+
+        return {'report': report, 'student': student}
+
+    def drop_course(self, data):
+        section_ids = parse_section_index(data['section_index'])
+        course_section = self.setup_course_section(**section_ids)
+        student_id = data['user_id']
+        student = self.setup_user(student_id)
+        registrar = Registrar.getInstance()
+        report = registrar.drop_course(student, course_section)
+        return {'report': report, 'student': student}
+
+    def search_for_course_section(self, search_dict):
+        """
+        search_dict has atleast one of the keys:
+            'department': str
+            'course_number'str
+            'instructor'str
+        """
+        print("searching with the following criteria")
+        print("search dict")
+        search_manager = SearchManager.getInstance()
+        result = search_manager.execute(search_dict)
+        return result
+
+    # def create_user(self, user_id: str):
+    #     return User(user_id)
 
     # def create_user_entity(self, user: User):
     #     if user.user_type == "Student":

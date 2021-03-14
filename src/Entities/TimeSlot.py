@@ -42,4 +42,9 @@ class TimeSlot():
         return f"TimeSlot {self.days} {self.start_time}-{self.end_time}"
 
     def jsonify(self):
-        return self.__dict__
+        result = {
+            'start_time': str(self.start_time),
+            'end_time': str(self.end_time),
+            'days': self.days
+        }
+        return result

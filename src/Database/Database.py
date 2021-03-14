@@ -51,20 +51,31 @@ class Database:
         # return cur.fetchone()
 
     def fetch_one(self, query, args):
+        """
+        args is a tuple
+        query is a str
+        """
 
         cur = self.conn.cursor()
-        try:
-            cur.execute(query, args)
-            result = cur.fetchone()
-        except Exception as e:
-            print(e)
-            result = None
-        finally:
-            cur.close()
-            return result
+        cur.execute(query, args)
+        result = cur.fetchone()
+        cur.close()
+        return result
+        # try:
+        #     cur.execute(query, args)
+        #     result = cur.fetchone()
+        # except Exception as e:
+        #     print(e)
+        #     result = None
+        # finally:
+        #     cur.close()
+        #     return result
 
     def fetch_all(self, query, args):
-
+        """
+        args is a tuple
+        query is a str
+        """
         cur = self.conn.cursor()
         try:
             cur.execute(query, args)
@@ -87,6 +98,10 @@ class Database:
     #         return cur
 
     def execute_insert_delete(self, query, vals):
+        """
+        query is a str
+        vals is a tuple
+        """
         cur = self.conn.cursor()
         try:
             cur.execute(query, vals)
@@ -166,7 +181,7 @@ class Database:
 
     def load_course_by_course_id(self, course_id: str, department: str):
         query = """
-        SELECT course_id, department, name
+        SELECT course_id, department, name, is_lab, lab_id
         FROM course
         WHERE course_id = %s AND department = %s
         """
@@ -262,3 +277,20 @@ class Database:
         print("database executing drop")
         return self.execute_insert_delete(
             query, (section_number, course_id, department, quarter, student_id))
+
+    def search_course_sections(self, query, args):
+        """
+        args is the sound a pirate makes
+        query is a str
+        """
+        return self.fetch_all(query, args)
+
+    def load_department_email(self, department: str):
+        query = """
+        SELECT email
+        FROM users u
+        INNER JOIN department d
+        ON d.chair = u.university_id
+        WHERE d.department_name = %s
+        """
+        return self.fetch_one(query, (department,))

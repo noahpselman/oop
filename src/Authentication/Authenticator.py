@@ -23,10 +23,13 @@ class Authenticator():
         obviously this is just a placeholder login
         """
         db_helper = DatabaseHelper.getInstance()
+        print("authenticator getting user_id", user_id)
         try:
             user_data = db_helper.load_user_by_id(user_id)
-        except:
+        except Exception as e:
+            print(e)
             print("user not found")
             return False
         else:
+            # print('user_data', user_data)
             return user_data['university_id']

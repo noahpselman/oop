@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from src.Database.DatabaseHelper import DatabaseHelper
 from src.Database.Mapper import Mapper
 from src.Entities.EnrollmentObject import EnrollmentObject
@@ -25,10 +27,25 @@ class EnrollmentObjectMapper(Mapper):
         pass
 
     def load(self, id: str):
+
         db_helper = DatabaseHelper.getInstance()
         return db_helper.load_enrollment_history_by_student_id(id)
 
-    def insert(self, enrollment: EnrollmentObject):
+    def insert(self, enrollable: Enrollable):
+        """
+        Enrollable is anything that responds to the messages
+        in this method
+        """
+
+        new_enrollment_kwargs = {
+            'section_number': enrollable.section_number,
+            'course_id': enrollable.course_id,
+            'department': enrollable.department,
+            'quarter': enrollable.quarter,
+            'student_id': enrollable.student_id,
+            'state': enrollable.state,
+            'type': 'REGULAR'
+        }
+
         db_helper = DatabaseHelper.getInstance()
-        print(enrollment.__dict__)
-        return db_helper.insert_new_enrollment(enrollment)
+        return db_helper.insert_new_enrollment(new_enrollment_kwargs)

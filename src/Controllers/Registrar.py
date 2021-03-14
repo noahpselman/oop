@@ -1,5 +1,7 @@
 from __future__ import annotations
-from src.Validations.Validation import AlreadyInCourseValidation, CourseHasEmptySeatValidator, CourseHasNotStartedValidator, CourseOpenEnrollmentValidator, InstructorPermissionValidator, NotInCourseValidation, OverloadPermissionValidation, PrereqValidation, StudentRestrictionValidation, TimeSlotValidation
+from src.Entities.EnrollmentObject import EnrollmentObject
+from src.Database.EnrollmentObjectMapper import EnrollmentObjectMapper
+from src.Validations.Validation import AlreadyInCourseValidation, CourseHasEmptySeatValidator, CourseHasNotFinishedValidator,  CourseOpenEnrollmentValidator, InstructorPermissionValidator, LabValidation, NotInCourseValidation, OverloadPermissionValidation, PrereqValidation, StudentRestrictionValidation, TimeSlotValidation
 from src.Database.DatabaseHelper import DatabaseHelper
 from src.Entities.Validator import Validator
 
@@ -9,6 +11,7 @@ class Registrar():
 
     REGISTER_VALIDATIONS = ([
         PrereqValidation,
+        LabValidation,
         StudentRestrictionValidation,
         TimeSlotValidation,
         NotInCourseValidation,
@@ -19,7 +22,7 @@ class Registrar():
 
     DROP_VALIDATIONS = ([
         AlreadyInCourseValidation,
-        CourseHasNotStartedValidator
+        CourseHasNotFinishedValidator
     ])
 
     @staticmethod
@@ -36,29 +39,33 @@ class Registrar():
         else:
             Registrar.__instance = self
 
-    def register_for_course(self, student: Student, course_section: CourseSection):
+    def register_for_course(self, student: Student,
+                            course_section: CourseSection):
         print("register for course called in student")
         validator = Validator(student, course_section)
         validation_report = validator.check_for_failures(
             self.REGISTER_VALIDATIONS)
-        print("validation report", validation_report)
+        # print("validation report", validation_report)
         if validation_report['success']:
-            new_enrollment_kwargs = {
-                'section_number': course_section.section_number,
-                'course_id': course_section.course_id,
-                'department': course_section.department,
-                'quarter': course_section.quarter,
-                'student_id': student.id,
-                'type': 'REGULAR',
-                'state': 'COMPLETE'
-            }
+            enrollment = EnrollmentObject(
+                student_id=student.id,
+                section_number=course_section.section_number,
+                course_id=course_section.course_id,
+                department=course_section.department,
+                quarter=course_section.quarter,
+                type='REGULAR',
+                state='COMPLETE'
+            )
+            mapper = EnrollmentObjectMapper.getInstance()
+            result = mapper.insert(enrollable=enrollment)
 
-            db_helper = DatabaseHelper.getInstance()
-            result = db_helper.insert_new_enrollment(new_enrollment_kwargs)
+            # db_helper = DatabaseHelper.getInstance()
+            # result = db_helper.insert_new_enrollment(new_enrollment_kwargs)
             validation_report['db_updated'] = result
             return validation_report
 
         else:
+            validation_report['db_updated'] = False
             return validation_report
 
     def drop_course(self, student: Student, course_section: CourseSection):

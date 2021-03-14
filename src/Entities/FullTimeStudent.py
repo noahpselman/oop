@@ -16,3 +16,9 @@ class FullTimeStudent(Student):
     @max_enrollment.setter
     def max_enrollment(self, new_max_enrollment):
         self._max_enrollment = new_max_enrollment
+
+    def jsonify(self):
+
+        result = super().jsonify()
+        result['max_enrollment'] = self.max_enrollment
+        return result

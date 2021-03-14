@@ -28,6 +28,18 @@ class CourseSection():
         # instantiating the roster is out of scope of this prototype
         self._roster: List[str] = []
 
+    @property
+    def lab(self):
+        return self._course.lab
+
+    @property
+    def instructor_email(self):
+        return self._instructor.email
+
+    @property
+    def course_info(self):
+        return self._course.course_info()
+
     def get_enrollment_total(self):
         from src.Database.CourseSectionMapper import CourseSectionMapper
         mapper = CourseSectionMapper.getInstance()
@@ -113,16 +125,20 @@ class CourseSection():
         return make_section_index(**kwargs)
 
     def __repr__(self):
-        return self.course_section_name()
+        return self.course_section_name
 
     def jsonify(self):
         result = {
+            'section_index': self.course_section_name,
             'section_number': self.section_number,
             'enrollment_open': self.enrollment_open,
-            'course': self.course,
+            'course': self.course.jsonify(),
             'quarter': self.quarter,
             'capacity': self.capacity,
-            'loading_data': self.data,
+            'loading_data': self._loading_data,
             'instructor': self.instructor.jsonify(),
-            'timeslot': self.timeslot.jsonify()
+            'timeslot': self.timeslot.jsonify(),
+            'enrollment_count': self.get_enrollment_total(),
+            'instructor_permission_required': self._instructor_permission_required
         }
+        return result

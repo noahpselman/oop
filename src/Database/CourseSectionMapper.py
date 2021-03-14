@@ -29,6 +29,8 @@ class CourseSectionMapper(Mapper):
         kwargs must include:
             course_id (str)
             department (str)
+            quarter (str)
+            section_number (str)
 
         """
         db_helper = DatabaseHelper.getInstance()

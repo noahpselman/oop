@@ -36,7 +36,11 @@ class CourseSectionFactory():
 
     def build_course_section(self, **kwargs):
         """
-        kwargs must include course_id and department
+        kwargs must include:
+            department: str
+            course_id: str
+            quarter: str
+            section_number: str
         """
         print("build course section called in course seciton factory")
         course_section_mappper = CourseSectionMapper.getInstance()

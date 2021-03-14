@@ -4,11 +4,18 @@ from src.util import make_course_index
 
 
 class Course():
-    def __init__(self, **kwargs) -> None:
-        self._course_id = kwargs['course_id']
-        self._name = kwargs['name']
-        self._department = kwargs['department']
-        self._prereqs = kwargs['prereqs']
+    def __init__(self, *, course_id: str, name: str, department: str, **kwargs) -> None:
+        self._course_id = course_id
+        self._name = name
+        self._department = department
+        self._prereqs = kwargs.get('prereqs', [])
+        self._is_lab = kwargs['is_lab']
+        self._lab: Course = kwargs.get('lab', None)
+        self._has_lab = bool(self._lab)
+
+    @property
+    def lab(self):
+        return self._lab
 
     @property
     def course_id(self):
@@ -33,4 +40,11 @@ class Course():
         return self.name + " " + self.course_info()
 
     def jsonify(self):
-        return self.__dict__
+        result = {
+            'name': self.name,
+            'course_id': self.course_id,
+            'department': self.department,
+            'prereqs': self.prereqs,
+            'course_index': self.course_info()
+        }
+        return result

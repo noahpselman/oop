@@ -27,7 +27,10 @@ class Student():
         self._major: str = None
         self._course_history = []
         self._restrictions: List[Restriction] = []
-        self._current_courses = []
+        self._current_courses = self.load_courses_by_quarter(
+            get_current_quarter())
+
+        self.__load_course_history()
 
         # self._controller = StudentMainController.get_instance()
 
@@ -39,7 +42,7 @@ class Student():
     # objects - will need to weigh the pros/cons
 
     def __repr__(self):
-        return f"""Student {self.user_data.id} with major {self.major}"""
+        return f"""{self.__class__.__name__} {self.user_data.id} with major {self.major}"""
 
     @property
     def exp_grad_date(self) -> str:
@@ -102,11 +105,11 @@ class Student():
             get_current_quarter())
         return self._current_courses
 
-    def __load_current_courses(self):
-        print("loading current courses in student")
-        mapper = StudentMapper.getInstance()
-        current_courses = mapper.load_current_courses(self)
-        self._current_courses = current_courses
+    # def __load_current_courses(self):
+    #     print("loading current courses in student")
+    #     mapper = StudentMapper.getInstance()
+    #     current_courses = mapper.load_current_courses(self)
+    #     self._current_courses = current_courses
         # enrollment_factory = EnrollmentFactory.getInstance()
         # enrollment_factory.build(self)
 
@@ -140,10 +143,12 @@ class Student():
     def jsonify(self):
         result = {
             "user_data": self.user_data.jsonify(),
-            "exp_grad_date": self.exp_grad_date,
-            "major": self.major,
+            "student_data": {
+                "exp_grad_date": self.exp_grad_date,
+                "major": self.major
+            },
             "course_history": [c.jsonify() for c in self.course_history],
-            "restrictions": [r.jsonify() for r in self.restrictions],
+            "restrictions": self.restrictions,
             "current_courses": [c.jsonify() for c in self.current_courses]
         }
         return result
