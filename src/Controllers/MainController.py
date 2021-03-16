@@ -11,10 +11,12 @@ from src.Factories.UserEntityFactory import UserEntityFactory
 from src.Authentication.Authenticator import Authenticator
 from src.Factories.CourseSectionFactory import CourseSectionFactory
 from src.Controllers.Registrar import Registrar
+from src.Logging.Logger import Logger
 
 
 class MainController():
     __instance = None
+    logger = Logger.getInstance()
 
     @staticmethod
     def getInstance():
@@ -51,6 +53,8 @@ class MainController():
         db.conn = connection
 
     def login(self, user_id, password):
+        self.logger.log(context=self.__class__.__name__, method="login",
+                        msg=f"login called with args {user_id}, {password}")
         print("controller getting user_id", user_id)
 
         auth = Authenticator.getInstance()
@@ -93,10 +97,9 @@ class MainController():
         # input into db
         # return result
 
-    def register(self, data):
-        section_ids = parse_section_index(data['section_index'])
+    def register(self, *, student_id: str, section_index: str):
+        section_ids = parse_section_index(section_index)
         course_section = self.setup_course_section(**section_ids)
-        student_id = data['user_id']
         student = self.setup_user(student_id)
         registrar = Registrar.getInstance()
         report = registrar.register_for_course(student, course_section)
@@ -112,10 +115,10 @@ class MainController():
 
         return {'report': report, 'student': student}
 
-    def drop_course(self, data):
-        section_ids = parse_section_index(data['section_index'])
+    def drop_course(self, *, student_id: str, section_index: str):
+
+        section_ids = parse_section_index(section_index)
         course_section = self.setup_course_section(**section_ids)
-        student_id = data['user_id']
         student = self.setup_user(student_id)
         registrar = Registrar.getInstance()
         report = registrar.drop_course(student, course_section)

@@ -16,7 +16,7 @@ class Logger():
     def __init__(self):
         """ Virtually private constructor. """
         self.db = MongoDatabase.getInstance()
-        self.table_name = "log-message"
+        # self.table_name = "log-message"
         if Logger.__instance != None:
             raise Exception("This class is a singleton!")
         else:

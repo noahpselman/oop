@@ -139,14 +139,14 @@ class Database:
         """
         return self.fetch_all(query, (student_id, quarter))
 
-    def load_timeslots_by_student_quarter(self, student_id: str, quarter: str):
-        query = """
-        SELECT e.section_number, e.course_id, e.department,
-        e.quarter, e.student_id, cs.timeslot
-        FROM enrollment e NATURAL JOIN course_section cs JOIN timeslot t on cs.timeslot = t.id
-        WHERE student_id = %s AND quarter = %s
-        """
-        return self.fetch_all(query, (student_id, quarter))
+    # def load_timeslots_by_student_quarter(self, student_id: str, quarter: str):
+    #     query = """
+    #     SELECT e.section_number, e.course_id, e.department,
+    #     e.quarter, e.student_id, cs.timeslot
+    #     FROM enrollment e NATURAL JOIN course_section cs JOIN timeslot t on cs.timeslot = t.id
+    #     WHERE student_id = %s AND quarter = %s
+    #     """
+    #     return self.fetch_all(query, (student_id, quarter))
 
     def load_enrollment_history_by_student_id(self, student_id: str):
         query = """
@@ -169,7 +169,7 @@ class Database:
         query = """
         SELECT name, start_date, end_date
         FROM quarter
-        WHERE end_date < %s
+        WHERE end_date <= %s
         """
         return self.fetch_all(query, (today,))
 
@@ -258,6 +258,19 @@ class Database:
         """
 
         return self.execute_insert_delete(query, tuple(enrollment_data.values()))
+
+    def delete_enrollment(self, *, section_number: str, course_id: str, department: str, quarter):
+
+        filter = {
+            'enrollment': {
+                'section_number': {'value': section_number, 'op': '='},
+                'course_id': {'value': course_id, 'op': '='},
+                'department': {'value': department, 'op': '='},
+                'quarter': {'value': quarter, 'op': '='}
+            }
+        }
+
+        self.db.delete(table="enrollment", filter=filter)
 
     def delete_enrollment(self, **kwargs):
         query = """

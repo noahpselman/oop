@@ -4,10 +4,13 @@ handles all database requests
 """
 
 from datetime import datetime
-from src.util import get_current_quarter
+from src.util import get_current_quarter, get_past_quarters
 from typing import List
 from src.Database.Database import Database
+from src.Database.SQLDatabase import SQLDatabase
 
+
+LOAD_RESTRICTIONS_COLUMNS = (["university_id", "restriction"])
 
 LOAD_STUDENT_COLUMNS = (["university_id", "expected_graduation",
                          "major", "fulltime", "maximum_enrollment"])
@@ -54,11 +57,20 @@ class DatabaseHelper():
             raise Exception("This class is a singleton!")
         else:
             DatabaseHelper.__instance = self
-        self.db = Database.getInstance()
-        if not self.db.conn:
-            raise Exception("Database doesn't have connection")
+        self._db = SQLDatabase.getInstance()
+        # self.db = Database.getInstance()
+        # if not self.db.conn:
+        #     raise Exception("Database doesn't have connection")
 
-    def unpack_db_result(self, columns: tuple, result):
+    @property
+    def db(self):
+        return self._db
+
+    @db.setter
+    def db(self, new_db):
+        self._db = new_db
+
+    def unpack_db_result(self, columns: list, result):
         """
         creates dictionary from db results
         columns: tuple containing names of columns
@@ -70,9 +82,24 @@ class DatabaseHelper():
             result_dict[col] = result[col]
         return result_dict
 
+    def unpack_results(self, columns, results):
+        return [self.unpack_db_result(columns, r) for r in results]
+
     def load_user_by_id(self, university_id: str):
-        result = self.db.load_user_by_id(university_id)
+        tables = ['users']
+        filter = {
+            'users': {
+                'university_id': {'value': university_id, 'op': '='}
+            }
+        }
+        select = {
+            "users": LOAD_USER_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_USER_COLUMNS, result)
+        # result = self.db.load_user_by_id(university_id)
+        # return self.unpack_db_result(LOAD_USER_COLUMNS, result)
 
     def load_student_by_id(self, university_id: str) -> dict:
         """
@@ -80,152 +107,285 @@ class DatabaseHelper():
         table colnames as keys and values as values
         """
         # result_dict = {}
-        print("db-helper loading student")
-        result = self.db.load_student_by_id(university_id)
+
+        tables = ['student']
+        filter = {
+            'student': {
+                'university_id': {'value': university_id, 'op': '='}
+            }
+        }
+        select = {
+            "student": LOAD_STUDENT_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_STUDENT_COLUMNS, result)
-        # for col in LOAD_STUDENT_COLUMNS:
-        #     result_dict[col] = result[col]
-        # print("result_dict from dbhelper", result_dict)
-        # return result_dict
 
-    def load_student_restrictions(self, univeristy_id: str) -> List[str]:
-        result_list = []
-        result = self.db.load_student_restrictions(univeristy_id)
-        print("restrictions from db helper", result)
-        for row in result:
-            result_list.append(row[0])
-        print("result list", result_list)
-        return result_list
-        # for col in LOAD_STUDENT_COLUMNS:
-        #     result_dict[col] = result[col]
-        # return result_dict
+    def load_student_restrictions(self, university_id: str) -> List[str]:
 
-    def load_enrollment_by_student_quarter(self, student_id: str, quarter: str):
+        tables = ['student_restrictions']
+        filter = {
+            'student_restrictions': {
+                'university_id': {'value': university_id, 'op': '='}
+            }
+        }
+        select = {
+            "student_restrictions": ['restriction']
+        }
+        results = self.db.find_all(
+            tables=tables, select=select, filter=filter)
+        rv = [r for r in results]
+        return rv
+
+    def load_enrollment_by_student_quarter(self, *, student_id: str, quarter: str):
         print("load enrollment by student id called from db helper")
-        result = self.db.load_enrollment_by_student_quarter(
-            student_id, quarter)
-        result_list = [self.unpack_db_result(
-            LOAD_ENROLLMENT_COLUMNS, r) for r in result]
-        return result_list
+        tables = ['enrollment']
+        filter = {
+            'enrollment': {
+                'student_id': {'value': student_id, 'op': '='},
+                'quarter': {'value': quarter, 'op': '='}
+            }
+        }
+        select = {
+            "enrollment": LOAD_ENROLLMENT_COLUMNS
+        }
+        results = self.db.find_all(
+            tables=tables, select=select, filter=filter)
 
-    def load_timeslots_by_student_quarter(self, student_id: str, quarter: str):
-        print("load enrollement by student quarter classed")
-        result = self.db.load_timeslots_by_student_quarter(
-            student_id, quarter)
-        result_list = [self.unpack_db_result(
-            LOAD_ENROLLMENT_COLUMNS, r) for r in result]
-        return result_list
+        return self.unpack_results(LOAD_ENROLLMENT_COLUMNS, results)
 
     def load_enrollment_history_by_student_id(self, student_id: str):
         print("load enrollment history by student id called from db helper")
-        result = self.db.load_enrollment_history_by_student_id(student_id)
-        result_list = [self.unpack_db_result(
-            LOAD_ENROLLMENT_COLUMNS, r) for r in result]
-        return result_list
+        tables = ['enrollment']
+        past_quarter = get_past_quarters()
+        filter = {
+            'enrollment': {
+                'student_id': {'value': student_id, 'op': '='},
+                'quarter': {'value': past_quarter, 'op': 'in'}
+            }
+        }
+        select = {
+            "enrollment": LOAD_ENROLLMENT_COLUMNS
+        }
+        results = self.db.find_all(
+            tables=tables, select=select, filter=filter)
+        print(results)
+        return self.unpack_results(LOAD_ENROLLMENT_COLUMNS, results)
 
-    def get_current_quarter(self, today: datetime.date):
-        result = self.db.get_current_quarter(today)
+    def load_current_quarter(self, today: datetime.date):
+        tables = ['quarter']
+        filter = {
+            'quarter': {
+                'start_date': {'value': today, 'op': '<='},
+                'end_date': {'value': today, 'op': '>='}
+            }
+        }
+        select = {
+            "quarter": LOAD_QUARTER_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_QUARTER_COLUMNS, result)
 
-    def get_past_quarters(self, today: datetime.date):
-        result = self.db.get_past_quarters(today)
-        # print("result from database helper:", result)
-        result_list = [self.unpack_db_result(
-            LOAD_QUARTER_COLUMNS, r) for r in result]
-        return result_list
+    def load_past_quarters(self, today: datetime.date):
+        tables = ['quarter']
+        filter = {
+            'quarter': {
+                'start_date': {'value': today, 'op': '<='}
+            }
+        }
+        select = {
+            "quarter": LOAD_QUARTER_COLUMNS
+        }
+        result = self.db.find_all(
+            tables=tables, select=select, filter=filter)
 
-    def load_course_by_course_id(self, **kwargs):
+        return self.unpack_results(LOAD_QUARTER_COLUMNS, result)
+
+    def load_course_by_course_id(self, *, department: str, course_id: str):
         """
-        kwargs must include course_id (str) and department (str)
         """
-        print("kwargs in load couse by course_id")
-        print(kwargs)
-        result = self.db.load_course_by_course_id(**kwargs)
+        tables = ['course']
+        filter = {
+            'course': {
+                'course_id': {'value': course_id, 'op': '='},
+                'department': {'value': department, 'op': '='}
+            }
+        }
+        select = {
+            "course": LOAD_COURSE_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_COURSE_COLUMNS, result)
 
     def load_instructor_by_id(self, instructor_id: str):
-        print("db_helper load instructor arg", instructor_id)
-        result = self.db.load_instructor_by_id(instructor_id)
+        tables = ['instructor']
+        filter = {
+            'instructor': {
+                'university_id': {'value': instructor_id, 'op': '='}
+            }
+        }
+        select = {
+            "instructor": LOAD_INSTRUCTOR_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_INSTRUCTOR_COLUMNS, result)
 
     def load_timeslot_by_id(self, timeslot_id: str):
-        result = self.db.load_timeslot_by_id(timeslot_id)
+        tables = ['timeslot']
+        filter = {
+            'timeslot': {
+                'id': {'value': timeslot_id, 'op': '='}
+            }
+        }
+        select = {
+            "timeslot": LOAD_TIMESLOT_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_TIMESLOT_COLUMNS, result)
 
-    def load_course_section_by_id(self, **kwargs):
+    def load_course_section_by_id(self, *, section_number: str, course_id: str, department: str, quarter: str):
         """
-        kwargs must include (all str) course_id, department,
-        section_number, quarter
+
         """
-        result = self.db.load_course_section_by_id(**kwargs)
-        print("load course section by id from dbhelper", result)
+        tables = ['course_section']
+        filter = {
+            'course_section': {
+                'course_id': {'value': course_id, 'op': '='},
+                'section_number': {'value': section_number, 'op': '='},
+                'quarter': {'value': quarter, 'op': '='},
+                'department': {'value': department, 'op': '='}
+            }
+        }
+        select = {
+            "course_section": LOAD_COURSE_SECTION_COLUMNS
+        }
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter)
         return self.unpack_db_result(LOAD_COURSE_SECTION_COLUMNS, result)
 
-    def load_prereqs_by_course_id(self, course_id: str):
-        result = self.db.load_prereqs_by_course_id(course_id)
-        result_list = [self.unpack_db_result(
-            LOAD_PREREQ_COLUMNS, r) for r in result]
-        return result_list
+    def load_enrollments_by_course_section_id(self, *,
+                                              section_number: str, course_id: str,
+                                              department: str, quarter: str):
+        tables = ['enrollment']
+        filter = {
+            'enrollment': {
+                'course_id': {'value': course_id, 'op': '='},
+                'section_number': {'value': section_number, 'op': '='},
+                'quarter': {'value': quarter, 'op': '='},
+                'department': {'value': department, 'op': '='}
+            }
+        }
+        select = {
+            "enrollment": LOAD_ENROLLMENT_COLUMNS
+        }
+        result = self.db.find_all(
+            tables=tables, select=select, filter=filter)
+        return self.unpack_results(LOAD_ENROLLMENT_COLUMNS, result)
 
-    def load_enrollment_total_for_course_section(self, **kwargs):
-        result = self.db.load_enrollment_total_for_course_section(**kwargs)
-        return result[0]
+    def load_prereqs_by_course_id(self, *, course_id: str, department: str):
+        tables = ['prereqs']
+        filter = {
+            'prereqs': {
+                'course_id': {'value': course_id, 'op': '='},
+                'department': {'value': department, 'op': '='}
+            }
+        }
+        select = {
+            "prereqs": LOAD_PREREQ_COLUMNS
+        }
+        result = self.db.find_all(
+            tables=tables, select=select, filter=filter)
+        return self.unpack_results(LOAD_PREREQ_COLUMNS, result)
+
+    def load_enrollment_total_for_course_section(self, *,
+                                                 section_number: str, course_id: str,
+                                                 department: str, quarter: str):
+        enrollments = self.load_enrollments_by_course_section_id(
+            section_number=section_number, course_id=course_id,
+            department=department, quarter=quarter)
+        # print(len(enrollments))
+        return len(enrollments)
 
     def insert_new_enrollment(self, enrollment_data: dict):
         """
-        enrollment data is should come in as a dict
+        enrollment_data should include values corresponding
+        to LOAD_ENROLLMENT_COLUMNS
         """
-        print("insert new enrollment called from db helper")
-        success = self.db.insert_new_enrollment(enrollment_data)
-        print(success)
+        success = self.db.create(
+            table='enrollment', values_dict=enrollment_data)
+
         return success
 
-    def delete_enrollment(self, **kwargs):
-        """
-        coming soon
-        """
-        print("delete enrollment called from db helper")
-        success = self.db.delete_enrollment(**kwargs)
-        print(success)
-        return success
+    def delete_enrollment(self, *,
+                          section_number: str, course_id: str,
+                          department: str, quarter: str, student_id: str):
+
+        filter = {
+            'enrollment': {
+                'section_number': {'value': section_number, 'op': '='},
+                'course_id': {'value': course_id, 'op': '='},
+                'department': {'value': department, 'op': '='},
+                'quarter': {'value': quarter, 'op': '='},
+                'student_id': {'value': student_id, 'op': '='}
+            }
+        }
+
+        self.db.delete(table="enrollment", filter=filter)
 
     def search_course_sections(self, search_dict):
         """
         search_dict has the following keys
             'department': str
-            'course_number': str
+            'course_id': str
             'instructor': str
             'quarter': str
-        """
 
-        colnames = {
-            'instructor': 'u.name',
-            'department': 'cs.department',
-            'section_number': 'cs.section_number',
-            'quarter': 'cs.quarter',
-            'course_id': 'cs.course_id'
+        could this benefit from refactoring: yes
+        do i have time to do that now: no
+        """
+        tables = ['course_section', 'users']
+        on = {
+            'course_section': {
+                'instructor_id': {
+                    'users': 'university_id'
+                }
+            }
         }
-
-        filters = [f'{colnames[k]} = %s' for k in search_dict.keys()]
-        filter_line = ' AND '.join(filters)
-        args = tuple(search_dict.values())
-
-        query = f"""
-        SELECT course_id, cs.department AS department, section_number, quarter
-        FROM course_section cs 
-        JOIN users u
-        ON cs.instructor_id = u.university_id
-        WHERE {filter_line}
-        """
-        print("query from db helper\n", query)
-        print("args", args)
-        result = self.db.search_course_sections(query, args)
-        result_list = [self.unpack_db_result(
-            SEARCH_COURSE_SECTION_COLUMNS, r) for r in result]
-        return result_list
+        select = {'course_section': SEARCH_COURSE_SECTION_COLUMNS}
+        filter = {}
+        filter = {
+            'course_section': {
+                'department': {'value': search_dict.get('department', '%'), 'op': 'LIKE'},
+                'quarter': {'value': search_dict.get('quarter', '%'), 'op': 'LIKE'}
+            }
+        }
+        filter = {}
+        for var in ['quarter', 'department', 'course_id']:
+            if var in search_dict:
+                course_section_filter = filter.get('course_section', {})
+                course_section_filter[var] = {
+                    'value': search_dict[var], 'op': '='}
+                filter['course_section'] = course_section_filter
+        if 'instructor' in search_dict:
+            filter['users'] = {
+                'name': {'value': search_dict['instructor'], 'op': '='}
+            }
+        print('filter:', filter)
+        result = self.db.find_all(
+            tables=tables, select=select, filter=filter, on=on)
+        return self.unpack_results(SEARCH_COURSE_SECTION_COLUMNS, result)
 
     def load_department_email(self, department: str):
-        print("load department email called with argument", department)
-        result = self.db.load_department_email(department)
-        print("load dpearment email result", result)
-        return result[0]
+        tables = ['users', 'department']
+        filter = {'department': {
+            'department_name': {'value': 'YAWN', 'op': '='}}
+        }
+        select = {"users": ["email"]}
+        on = {'department': {'users': "university"}}
+        result = self.db.find_one(
+            tables=tables, select=select, filter=filter, on=on)
+        return result
