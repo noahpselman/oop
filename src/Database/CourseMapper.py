@@ -5,6 +5,9 @@ from src.Database.DatabaseHelper import DatabaseHelper
 
 
 class CourseMapper(Mapper):
+    """
+    returns course object from database
+    """
 
     __instance = None
 
@@ -32,6 +35,7 @@ class CourseMapper(Mapper):
             course_id=course_id, department=department)
         loaded_data['prereqs'] = prereqs
         if loaded_data.get('lab_id'):
+
             lab = self.__load_lab(lab_id=loaded_data['lab_id'],
                                   department=loaded_data['department'])
             loaded_data['lab'] = lab

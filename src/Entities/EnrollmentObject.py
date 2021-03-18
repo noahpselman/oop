@@ -3,6 +3,12 @@ from src.util import make_course_index
 
 
 class EnrollmentObject():
+    """
+    Holds data relevant to enrollments to be used
+    in other processes
+    Even those it's pretty much just data, it's
+    used enough where defining a class makes sense
+    """
 
     def __init__(self, *,
                  student_id, section_number,

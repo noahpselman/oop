@@ -1,0 +1,1 @@
+\COPY course(name, course_id, department) FROM 'courses.csv' DELIMITER ',';

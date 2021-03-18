@@ -1,11 +1,7 @@
 from __future__ import annotations
 from src.Email.Emailer import Emailer
 from src.Database.EnrollmentObjectMapper import EnrollmentObjectMapper
-from src.Database.DatabaseHelper import DatabaseHelper
-from types import resolve_bases
 from src.Entities.CourseSection import CourseSection
-# from src.Factories.RequestFactory import RequestFactory
-from src.util import parse_section_index
 from src.Entities.Request import InstructorPermissionRequest, OverloadPermissionRequest
 
 
@@ -35,19 +31,21 @@ class RequestManager():
         else:
             RequestManager.__instance = self
 
-    def request_permission(self, *, 
-                        student: Student, course_section: CourseSection, 
-                        permission_type:str):
+    def request_permission(self, *,
+                           student: Student, course_section: CourseSection,
+                           permission_type: str):
         if permission_type == "instructor":
-            result = self.__request_instructor_permission(student=student, course_section=course_section)
+            result = self.__request_instructor_permission(
+                student=student, course_section=course_section)
 
         elif permission_type == "overload":
-            result = self.__request_overload_permission(student=student, course_section=course_section)
+            result = self.__request_overload_permission(
+                student=student, course_section=course_section)
 
         return result
 
-    def __request_instructor_permission(self, *, 
-            student: Student, course_section: CourseSection) -> bool:
+    def __request_instructor_permission(self, *,
+                                        student: Student, course_section: CourseSection) -> bool:
         # request = InstructorPermissionRequest(student_id=student.id, course_id=course_section.course_id,
         #                                       department=department, quarter=quarter)
         request = self.__build_request(request_type="INSTRUCTOR_PERMISSION",

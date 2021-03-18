@@ -7,14 +7,14 @@ class App extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            loggedIn: JSON.parse(localStorage.getItem('loggedIn')) || false,
-            userId: localStorage.getItem('userId') || "",
-            password: localStorage.getItem('password') || "",
-            entityData: JSON.parse(localStorage.getItem('entityData')) || {},
-            entityDataLoaded: JSON.parse(localStorage.getItem('entityDataLoaded')) || false,
-            entityType: localStorage.getItem('entityType') || "",
-            currentQuarter: JSON.parse(localStorage.getItem('currentQuarter')) || "",
-            displayCourses: JSON.parse(localStorage.getItem('displayCourses')) || "",
+            loggedIn: false,
+            userId: "",
+            password: "",
+            entityData: {},
+            entityDataLoaded: false,
+            entityType: "",
+            currentQuarter: "",
+            displayCourses: "",
             searchInstructor: "",
             searchDepartment: "",
             searchCourseNumber: "",

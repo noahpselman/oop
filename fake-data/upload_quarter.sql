@@ -1,0 +1,1 @@
+\COPY quarter(quarter) FROM 'quarter.csv' DELIMITER ',';

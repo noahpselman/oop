@@ -8,6 +8,16 @@ from src.Database.StudentMapper import StudentMapper
 class UserEntityFactory():
     """
     Builds specific entities representing users from User object
+
+    I had an option to implement the factory method pattern here
+    and have a student factory and instructor factory.  I chose not
+    to because that didn't seem like it would require something
+    upstream to know which factory to use.  This way the factory
+    can figure what to output and everything outside doesn't have
+    to worry about that - they just know they're going to get what
+    they want by passing in a user id string - while this is not a
+    design pattern I recognize it feels a lot cleaner and doesn't
+    really violate the single responsibility principle
     """
 
     USER_MAPPERS = {
@@ -42,8 +52,3 @@ class UserEntityFactory():
         entity = mapper.load(user)
 
         return entity
-
-        # Mapper = self.USER_MAPPERS[user.type]
-        # mapper = Mapper()
-        # entity = mapper.load(user)
-        # return entity

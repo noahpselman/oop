@@ -32,5 +32,5 @@ class InstructorMapper(Mapper):
         db_helper = DatabaseHelper.getInstance()
         instructor_data = db_helper.load_instructor_by_id(user.id)
         instructor = Instructor(
-            user_data=user, department=instructor_data['department'])
+            user_data=user, department=instructor_data.get('department'))
         return instructor

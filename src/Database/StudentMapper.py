@@ -6,24 +6,11 @@ from src.Database.Mapper import Mapper
 from src.Entities.User import User
 
 
-"""
-Kind of like a factory but only from db
-Also can load in chunks - not sure if this
-will be useful
-"""
-
-
-# this will eventually find somewhere else to live
-# RESTRICTION_MAPPER = {
-#     "LIBRARY": LibraryRestriction,
-#     "ACADEMIC ADVISOR": AcademicAdvisorRestriction,
-#     "TUITION": TuitionRestriction,
-#     "SUSPENSION": SuspensionRestriction,
-#     "IMMUNIZATION": ImmunizationRestriction
-# }
-
-
 class StudentMapper(Mapper):
+    """
+    calls methods on database helper to load student-relevant
+    data from database
+    """
 
     __instance = None
 
@@ -43,7 +30,10 @@ class StudentMapper(Mapper):
             super().__init__()
 
     def load(self, user: User):
-        # print(self.db_helper)
+        """
+        actually returns student subclass (as opposed to dict corresponding
+        to constructor arguments of student subclass)
+        """
 
         print(f"student mapper load: userid is {user.id}")
         student_data = self.db_helper.load_student_by_id(user.id)

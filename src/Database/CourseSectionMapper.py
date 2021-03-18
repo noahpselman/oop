@@ -37,8 +37,10 @@ class CourseSectionMapper(Mapper):
         else:
             CourseSectionMapper.__instance = self
 
-    def load(self, *, course_id: str, department: str, quarter: str, section_number: str):
+    def load(self, *, course_id: str, department: str, quarter: str, section_number: str) -> dict:
         """
+        returns dict with data required for construction instead of
+        object itself
         """
         db_helper = DatabaseHelper.getInstance()
 

@@ -2,6 +2,10 @@ from __future__ import annotations
 
 
 class Engine():
+    """
+    sophisticated algorithm for email sending
+    """
+
     def __init__(self):
         None
 

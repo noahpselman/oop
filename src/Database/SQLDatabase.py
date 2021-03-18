@@ -7,6 +7,9 @@ from psycopg2.extras import DictCursor
 
 
 class SQLDatabase():
+    """
+    CRUD operations sql db
+    """
 
     __instance = None
 

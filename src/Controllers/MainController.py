@@ -9,6 +9,10 @@ from src.Controllers.Registrar import Registrar
 
 
 class MainController():
+    """
+    responsible for taking data from the router and
+    calling appropriate application methods
+    """
     __instance = None
 
     @staticmethod
@@ -32,16 +36,14 @@ class MainController():
         result = auth.authenticate_user(user_id, password)
         return result
 
-    def setup_user(self, user_id):
+    def __setup_user(self, user_id):
         user_entity_factory = UserEntityFactory.getInstance()
-        print("user id from setup_user", user_id)
         entity = user_entity_factory.build_from_id(user_id)
-        print('entity from setup_user in main controller', entity)
         return entity
 
-    def setup_course_section(self, *,
-                             section_number: str, course_id: str,
-                             department: str, quarter: str):
+    def __setup_course_section(self, *,
+                               section_number: str, course_id: str,
+                               department: str, quarter: str):
         """
         course_section_data must include:
 
@@ -53,11 +55,10 @@ class MainController():
         return course_section
 
     def request_permission(self, *, permission_type: str, student_id: str, section_index: str):
-        student = self.setup_user(student_id)
+        student = self.__setup_user(student_id)
         course_section_data = parse_section_index(section_index)
-        course_section = self.setup_course_section(**course_section_data)
+        course_section = self.__setup_course_section(**course_section_data)
         request_manager = RequestManager.getInstance()
-        print("instructor permission requested")
         result = request_manager.request_permission(
             student=student, course_section=course_section, permission_type=permission_type)
 
@@ -65,8 +66,8 @@ class MainController():
 
     def register(self, *, student_id: str, section_index: str):
         section_ids = parse_section_index(section_index)
-        course_section = self.setup_course_section(**section_ids)
-        student = self.setup_user(student_id)
+        course_section = self.__setup_course_section(**section_ids)
+        student = self.__setup_user(student_id)
         registrar = Registrar.getInstance()
         report = registrar.register_for_course(
             student=student, course_section=course_section)
@@ -86,15 +87,14 @@ class MainController():
     def register_for_lab(self, *,
                          student_id: str, section_index: str, lab_index: str):
         section_ids = parse_section_index(section_index)
-        course_section = self.setup_course_section(**section_ids)
+        course_section = self.__setup_course_section(**section_ids)
         lab_ids = parse_section_index(lab_index)
-        lab_section = self.setup_course_section(**lab_ids)
-        student = self.setup_user(student_id)
+        lab_section = self.__setup_course_section(**lab_ids)
+        student = self.__setup_user(student_id)
         registrar = Registrar.getInstance()
         report = registrar.register_for_lab(
             student=student, course_section=course_section, lab_section=lab_section)
 
-        print("report from register for lab")
         fail_manager = RegistrationFailureManager()
         results = fail_manager.execute(
             course_section=course_section, report=report)
@@ -109,8 +109,8 @@ class MainController():
     def drop_course(self, *, student_id: str, section_index: str):
 
         section_ids = parse_section_index(section_index)
-        course_section = self.setup_course_section(**section_ids)
-        student = self.setup_user(student_id)
+        course_section = self.__setup_course_section(**section_ids)
+        student = self.__setup_user(student_id)
         registrar = Registrar.getInstance()
         report = registrar.drop_course(student, course_section)
         return {'report': report, 'student': student}
@@ -129,6 +129,6 @@ class MainController():
         return result
 
     def get_current_courses(self, *, student_id: str, quarter: str):
-        student = self.setup_user(student_id)
+        student = self.__setup_user(student_id)
         result = student.get_courses_by_quarter(quarter)
         return {'student': student, 'courses': result}

@@ -389,14 +389,14 @@ def test_load_department_email():
     db_helper = DatabaseHelper.getInstance()
     mock_db = Mock()
     rv = "the@email.com"
-    mock_db.find_one.return_value = rv
+    mock_db.find_one.return_value = [rv]
     db_helper.db = mock_db
     result = db_helper.load_department_email('YAWN')
     args = {
         'tables': ['users', 'department'],
         'select': {'users': ["email"]},
         'filter': {'department': {'department_name': {'value': 'YAWN', 'op': '='}}},
-        'on': {'department': {'users': "university"}}
+        'on': {'department': {'chair': {'users': "university_id"}}}
     }
     mock_db.find_one.assert_called_once_with(**args)
     assert result == rv

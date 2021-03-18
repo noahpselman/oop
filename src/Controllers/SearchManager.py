@@ -3,6 +3,15 @@ from src.Database.DatabaseHelper import DatabaseHelper
 
 
 class SearchManager():
+    """
+    returns requested list course_sections to caller
+
+
+
+    TODO
+    add options for filtering results based on student data
+    (ie times of current courses)
+    """
     __instance = None
 
     @staticmethod
@@ -31,8 +40,5 @@ class SearchManager():
         result = db_helper.search_course_sections(search_dict)
         factory = CourseSectionFactory.getInstance()
         course_sections = factory.build_course_sections(result)
-        # print(course_sections)
 
         return course_sections
-        # query_object = QueryObject(search_dict)
-        # return query_object.translate()

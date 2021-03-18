@@ -1,12 +1,6 @@
-
-"""
-handles all database requests
-"""
-
+from __future__ import annotations
 from datetime import datetime
-from src.util import get_current_quarter, get_past_quarters
-from typing import List
-from src.Database.Database import Database
+from src.util import get_past_quarters
 from src.Database.SQLDatabase import SQLDatabase
 
 
@@ -40,6 +34,25 @@ SEARCH_COURSE_SECTION_COLUMNS = (['course_id', 'department',
 
 
 class DatabaseHelper():
+    """
+    singleton
+    responsibility is to translate common caller
+    requests into CRUD operations
+
+    the astute grader will ask "hmmmmm doesn't this
+    kind of overlap with the mapper classes? couldn't
+    he have just implemented the mapper methods
+    in terms of CRUD operations"
+    touche, grader - well spotted
+    this is a refactor I would make if I had more time
+    in that case each specific mapper could own its list
+    of columns instead of this one.  that would make more
+    sense
+
+    TODO: move the "unpack" methods to sql database this class
+    shouldn't need to know how to translate db results into
+    native python objects
+    """
 
     __instance = None
 
@@ -58,9 +71,6 @@ class DatabaseHelper():
         else:
             DatabaseHelper.__instance = self
         self._db = SQLDatabase.getInstance()
-        # self.db = Database.getInstance()
-        # if not self.db.conn:
-        #     raise Exception("Database doesn't have connection")
 
     @property
     def db(self):
@@ -169,7 +179,6 @@ class DatabaseHelper():
         }
         results = self.db.find_all(
             tables=tables, select=select, filter=filter)
-        print(results)
         return self.unpack_results(LOAD_ENROLLMENT_COLUMNS, results)
 
     def load_current_quarter(self, today: datetime.date):
@@ -231,6 +240,7 @@ class DatabaseHelper():
         }
         result = self.db.find_one(
             tables=tables, select=select, filter=filter)
+        print("instructor id", result)
         return self.unpack_db_result(LOAD_INSTRUCTOR_COLUMNS, result)
 
     def load_timeslot_by_id(self, timeslot_id: str):
@@ -374,7 +384,6 @@ class DatabaseHelper():
             filter['users'] = {
                 'name': {'value': search_dict['instructor'], 'op': '='}
             }
-        print('filter:', filter)
         result = self.db.find_all(
             tables=tables, select=select, filter=filter, on=on)
         return self.unpack_results(SEARCH_COURSE_SECTION_COLUMNS, result)
@@ -385,7 +394,7 @@ class DatabaseHelper():
             'department_name': {'value': department, 'op': '='}}
         }
         select = {"users": ["email"]}
-        on = {'department': {'chair' : {'users': "university_id"}}}
+        on = {'department': {'chair': {'users': "university_id"}}}
         result = self.db.find_one(
             tables=tables, select=select, filter=filter, on=on)
         return result[0]

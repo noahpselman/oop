@@ -1,0 +1,1 @@
+\COPY department(department_name) FROM 'departments.csv' DELIMITER ',';

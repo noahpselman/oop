@@ -1,0 +1,1 @@
+\COPY university_affiliated_person(name, is_faculty, is_student) FROM 'UAP.csv' DELIMITER ',';
