@@ -1,6 +1,8 @@
 # Noah's OOP/Web Dev Final Project
 
+A note to OOP graders - i spent time on my front end because it is my final project for my web dev course.  It is due 3/21 so I will continually make changes until then.  If you want to be strict, you should grade the OOP-Final-Submission branch, on which I will (hopefully) stop making updates by the deadline.  BUT.... if you want to check out the version with the coolest UI please feel free to checkout the version on the main branch.
 
+## Setup Instructions
 
 ### Set up postgres db
 I followed the instructions in the [postgres section here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database) to install postgres on my WSL (Ubuntu 20.04).  If you already have postgres installed, skip to step 3 to create the db relevant to this project.
@@ -32,26 +34,29 @@ def mongo_conf():
 ```
 Warning: at times the logging slows down the program, if that's an issue, please try commenting out the logging commands in oop-proj/src/api/api.py then re-running `flask run`
 
-### Starting up the project
+## Starting up the project
 0. Start the postgres database by entering `sudo service postgresql start`
 1. Download the python packages in requirements.txt (requires python3 and some virtual environment to be installed)
 2. Download the javascript dependencies using npm install (requires npm to be installed)
 3. In a terminal activate flask with `run flask`
 4. In another terminal start the javascript with `npm start` (or yarn start if you're doing that instead)
 
-### Video demonstration of project features
-A video demo of some of the features can be found at here: YOUTUBE LINK
 
-### Running Tests
+### What to test
+Login: students have ids 41-200, password can be anything
+
+It's easiest to courses by department
+
+
+
+## Running Tests
 A note about my experience attempting test driven development:
 I found that writing tests prior to implementing features slowed me down substantially.  Originally I wrote tests for each type of attribute on each object.  However, the interfaces, methods, and existence of my objects evolved so dramatically that there were sets of tests I had spent hours on for objects that disappeared.  I then adopted the strategy writing tests  after I had built a basic structure for a bounded context.  This still slowed me down so I began only testing the public interface of classes.  With more time I would expand this to be more comprehensive.  However, these tests will notify me if any change I make breaks the major parts of my code.
 
-To run the tests simply execute the command pytest in the terminal while in oop-proj/src
-Currently tests are written for the following class:
-- SQL DB
-- DatabaseHelper
+In the end, I was having a ton of trouble patching anything in a way that wouldn't screw over my other tests so I gave up.  Definitely trying to learn best testing practices but I had to triage this to get a functioning product.  I did try to test all I could without patching.
 
-### Features
+
+### An incomplete list of features
 My application represents a prototype of a university course registration system with the following capabilities:
 - Students can search courses by department, instructor name, and course number.  Doing so will mock an email send.
 - Students can register for courses they've searched by clicking a "register" button.  Doing so will mock an email send.
@@ -63,30 +68,25 @@ My application represents a prototype of a university course registration system
 - When a student attempts to register for a section with time conflict with another course, they're shown a list of alternative sections.
 - Students can see their restriction
 - The system will check numberous criteria to determine of a student is eligble to register for a course:  whether they have restrictions, if they have met the prereqs, if there are time conflicts with other courses, if the course requires special permission, if the course is full, etc.  (This is done in a pretty nifty way using the strategy pattern).
-
-
-### Design Notes
-- All the important data are stored in a sql db.  Two entity class are instantiated for nearly every process in the application: Student and CourseSection.
-
-#### Student
-- Students mostly just hold data relevant to... that student
-- Students hold a user object that knows data help by all types of users: name, university_id, email
-- For a most operations students are mainly a data structure passed between controller
-- Students are generally instantiated from a student id as one of the first steps after an endpoint gets hit
-- Many attributes of students are required only for a single use case - these are setup to lazily load from the database only when these attributes are called
-
-#### CourseSection
-- Course sections are also mostly just used as data structures with information relevant to many procedures
-- Course sections are identified by section_number, course_id, quarter, and department and are instantiated from these variables to execute processes contingent on various aspects of course section data
-
-#### Registration
-- The registration process involves a registrar first telling a validator to cycling through "Validations" - validations all respond to an "is_valid" method.  The validator returns a report with details about a students eligibility for a class.  The registrar passes that report to a RegistrationFailureManager which performs the corresponding actions.  Then the registrar adds an enrollment to the database (or tries to) and sends the ValidationReport to the frontend.
+- Probably some other stuff
 
 ### Known Limitation (a jumping off point for graders)
+Below are remaining items on my todo list that I didn't have time to resolve
 
+##### UI STUFF
 - As of Wednesday, 3/17 my App.js is a heaping mess that follows no object-oriented principles.  While originally I hoped to do this, my esteemed Web Development professor advised my to just get everything working before I start refactoring in multiple files.  I understand that in react sharing a state between components living in different files can introduce some complexities that may have prevented me from delivering a functioning product.  I plan on refactoring the front end before my web development project is due on Sunday, 3/21
-- Generally the backend is ahead of the front end meaning that I haven't created a working user interface for all the features that the backend supports.  For example, I haven't build support for displaying a students course history or for allowing a student to change labs.
+- Generally the backend is ahead of the front end meaning that I haven't created a working user interface for all the features that the backend supports.  For example, I haven't build support for displaying a students course history or for allowing a student to change labs.  There are also things like drop buttons being able to drop a course without dropping it's lab - things are front end things I'd correct with more time.
 - Tentative and Pending enrollments (created when students request overload or instructor permission) display on the front end as normal courses
 - Currently students have an attribute called current courses - this a list of CourseSection objects because CourseSections have all the data that the front end might want to display.  In reality students should be holding Enrollments, objects that represent a students participation in a course and holds information particular to that relationship (ie if they're auditing or taking a course P/F and their grade).
+- Things are generally ugly
+
+##### BACKEND STUFF
 - I allow students to register for labs without registering for the corresponding course, (even though the opposite is not allowed).
-- 
+- Course section search results should be filtered upon return to non-conflicting times in some cases (such as when searching for a lab or alternative time slot) - this has not been implemented yet.  I plan to do this in an object as opposed to a db query since speed isn't a factor at this point and it gives me more design flexiblity.
+ - Some mappers return object while other return dictionaries of data required to create the object.  Even worse, some load methods return lists of objects, others return one - needs to be standardized
+ - Mappers and factories are redundant in some cases
+ - DatabaseHelper knows how to translate sql database resul objects back into dictionaries - this knowledge should be owned by sql database
+ - Main controller maybe shouldn't know that it needs to check registration report for failures after it gets it back from the registrar.  maybe delegate that to registrar or create an in-between object?
+ - Figure out of search manager should be taking a dict or kwargs - why does this feel inconsistent with the way other controllers are kicked-off
+ - Logger should send logs in batches instead of at every endpoint hit - it'll speed things up probably.
+ - Department in search needs to be all capps - shouldn't be like this
