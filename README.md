@@ -51,12 +51,11 @@ Warning: at times the logging slows down the program, if that's an issue, please
 6. To try registering for a course with a lab, search 'HERB' in departments and try registering for a section of HERB 911
 
 
-
-## Running Tests
-A note about my experience attempting test driven development:
+## Unit Tests
+A note about my experience attempting test driven development that nobody asked for:
 I found that writing tests prior to implementing features slowed me down substantially.  Originally I wrote tests for each type of attribute on each object.  However, the interfaces, methods, and existence of my objects evolved so dramatically that there were sets of tests I had spent hours on for objects that disappeared.  I then adopted the strategy writing tests  after I had built a basic structure for a bounded context.  This still slowed me down so I began only testing the public interface of classes.  With more time I would expand this to be more comprehensive.  However, these tests will notify me if any change I make breaks the major parts of my code.
 
-In the end, I was having a ton of trouble patching anything in a way that wouldn't screw over my other tests so I gave up.  Definitely trying to learn best testing practices but I had to triage this to get a functioning product.  I did try to test all I could without patching.
+In the end, I was having a ton of trouble patching anything in a way that wouldn't screw over my other tests so I gave up.  Definitely trying to learn best testing practices but I had to triage this to get a functioning product.  I did try to test all I could without patching but as a result many controller appear un-tested.  During the development process I tested using a main.py file in which I simulated processes and printed results to verify they're as expected.  While this is vastly inferior to automated testing, I hope it demonstrates that I wasn't coding blind and was ensuring my code worked. 
 
 
 ### An incomplete list of features
