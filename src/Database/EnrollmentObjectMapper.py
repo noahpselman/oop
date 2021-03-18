@@ -6,6 +6,19 @@ from src.Entities.EnrollmentObject import EnrollmentObject
 
 
 class EnrollmentObjectMapper(Mapper):
+    """
+    singleton
+    responsible for calling appropriate methods on database helper
+    for enrollment objects
+    since enrollment objects just hold data, some methods
+    work with anything that is "enrollable", meaning it 
+    responsed to the messages required to get the data
+    corresponding to the database columns
+
+    on occations, dictionaries are used in lieu of enrollment
+    objects when they're just used to identify database rows
+    prior to creation or deletion
+    """
     __instance = None
 
     @staticmethod
@@ -23,18 +36,18 @@ class EnrollmentObjectMapper(Mapper):
             EnrollmentObjectMapper.__instance = self
         super().__init__()
 
-    def save(self):
-        pass
-
-    def load(self, id: str):
+    def load(self, id: str) -> List[EnrollmentObject]:
 
         db_helper = DatabaseHelper.getInstance()
         return db_helper.load_enrollment_history_by_student_id(id)
 
-    def insert(self, enrollable: Enrollable):
+    def insert(self, enrollable: Enrollable) -> bool:
         """
         Enrollable is anything that responds to the messages
         in this method
+        note: an example of another enrollable object is an
+        enrollment request which can be passed to this method
+        in the permission request sequence
         """
 
         new_enrollment_kwargs = {
@@ -49,3 +62,10 @@ class EnrollmentObjectMapper(Mapper):
 
         db_helper = DatabaseHelper.getInstance()
         return db_helper.insert_new_enrollment(new_enrollment_kwargs)
+
+    def delete(self, *, student_id: str, course_id:
+               str, department: str, section_number: str,
+               quarter: str) -> bool:
+        db_helper = DatabaseHelper.getInstance()
+        return db_helper.delete_enrollment(student_id=student_id, course_id=course_id,
+                                           section_number=section_number, department=department, quarter=quarter)

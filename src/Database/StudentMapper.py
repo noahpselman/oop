@@ -1,12 +1,8 @@
 from __future__ import annotations
-from src.Database.EnrollmentObjectMapper import EnrollmentObjectMapper
 from src.Factories.CourseSectionFactory import CourseSectionFactory
 from src.Factories.EnrollmentFactory import EnrollmentFactory
 from src.Database.DatabaseHelper import DatabaseHelper
-from typing import List
-# from src.classes.Exceptions import StudentHasNoIDExeception
 from src.Database.Mapper import Mapper
-from src.Constants.Restrictions import *
 from src.Entities.User import User
 
 
@@ -62,48 +58,28 @@ class StudentMapper(Mapper):
         student.exp_grad_date = student_data['expected_graduation']
         student.major = student_data['major']
 
-        # TODO move these to a separate function so they can be
-        # lazy loaded
-        restrictions = self.db_helper.load_student_restrictions(
-            student.user_data.id)
-
-        # restrictions = [RESTRICTION_MAPPER[r] for r in restrictions]
-        student.restrictions = restrictions
-
         return student
 
-    def load_courses_by_quarter(self, student: Student, quarter: str):
-        print("load enrollments called from student mapper")
+    def load_student_restrictions(self, student_id):
+        restrictions = self.db_helper.load_student_restrictions(
+            student_id)
+        return restrictions
+
+    def load_courses_by_quarter(self, *, student: Student, quarter: str):
         db_helper = DatabaseHelper.getInstance()
         loaded_data = db_helper.load_enrollment_by_student_quarter(
-            student.id, quarter)
+            student_id=student.id, quarter=quarter)
         print("loaded data from load_current_courses", loaded_data)
+
         course_section_factory = CourseSectionFactory.getInstance()
         course_sections = course_section_factory.build_course_sections(
             loaded_data)
         return course_sections
 
-        # loaded_data = db_helper.load_current_enrollment_by_student_id(
-        #     student.user_data.id)
-        # print("loaded data from student mapper:", loaded_data)
-        # enrollment_factory = EnrollmentFactory.getInstance()
-        # enrollments = enrollment_factory.build_enrollments(loaded_data)
-        # print("enrollments from student mapper", enrollments)
-        # return enrollments
-
-    def load_course_history(self, student: Student):
+    def load_course_history(self, student_id: str):
         from src.Entities.Student import Student
         print("load course history called from student mapper")
-        # db_helper = DatabaseHelper.getInstance()
-        # loaded_data = db_helper.load_enrollment_history_by_student_id(
-        #     student.id)
-
-        # print("loaded data from student mapper:", loaded_data)
         enrollment_factory = EnrollmentFactory.getInstance()
         enrollments = enrollment_factory.build_enrollments_from_id(
-            student.id)
-        print("enrollments from student mapper", enrollments)
+            student_id)
         return enrollments
-
-    def save(self):
-        pass

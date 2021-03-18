@@ -6,6 +6,10 @@ from src.Database.Mapper import Mapper
 
 
 class InstructorMapper(Mapper):
+    """
+    creates instructor objects from data returned by
+    Database helper
+    """
 
     __instance = None
 
@@ -30,6 +34,3 @@ class InstructorMapper(Mapper):
         instructor = Instructor(
             user_data=user, department=instructor_data['department'])
         return instructor
-
-    def save(self):
-        pass

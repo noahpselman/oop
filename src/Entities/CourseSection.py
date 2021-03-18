@@ -1,30 +1,56 @@
 from __future__ import annotations
 
-from typing import KeysView
 from src.Database.TimeSlotMapper import TimeSlotMapper
 from src.Entities.TimeSlot import TimeSlot
 from src.util import get_current_quarter, make_section_index
 
 
 class CourseSection():
-    pass
-    # def __init__(self) -> None:
+    """
+    responsible for holding data relavant to individual course
+    sections and responding to messages from those involved
+    with registration process
 
-    def __init__(self, **kwargs) -> None:
+    the instructor and timeslot attributes can be lazily loaded
+    using the loading_data attribute - while it makes sense
+    for the course section to know how to load itself, this could
+    be refactored such that this information is loaded from 
+    just the section_number, department, quarter, and course_id
+
+    state can take 3 values: PRESTART, ONGOING, FINISHED
+
+    jsonify method turns it into a json object that can 
+    be sent to the front end
+    """
+
+    def __init__(self, *,
+                 section_number: str,
+                 enrollment_open: bool,
+                 course: Course,
+                 quarter: str,
+                 data: dict,
+                 capacity: int,
+                 state: str,
+                 instructor_permission_required: bool) -> None:
         """
-        kwargs are documented in contructor body
+        # TODO
+        data is a dictionary that includes data required to
+        lazily load instructor (instructor_id) and timeslot(timeslot_id)
+
+        these could be refactored so that they can be loaded by id data
+        (section_number, department, quarter, course_id)
+        this is a lower priority to-do item
         """
 
-        self._section_number: str = kwargs['section_number']
-        self._enrollment_open: bool = kwargs['enrollment_open']
-        self._course: str = kwargs['course']
-        self._quarter: str = kwargs['quarter']
-        self._loading_data: dict = kwargs['data']
-        self._capacity: int = kwargs['capacity']
-        self._state: int = kwargs['state']
-        self._instructor_permission_required: bool = kwargs['instructor_permission_required']
-        self._instructor: Instructor = None
-        self._timeslot: TimeSlot = None
+        self._section_number = section_number
+        self._enrollment_open = enrollment_open
+        self._course = course
+        self._quarter = quarter
+        self._loading_data = data
+        self._capacity = capacity
+        self._state = state
+        self._instructor_permission_required = instructor_permission_required
+
         # instantiating the roster is out of scope of this prototype
         self._roster: List[str] = []
 
@@ -34,11 +60,15 @@ class CourseSection():
 
     @property
     def instructor_email(self):
-        return self._instructor.email
+        return self.instructor.email
 
     @property
     def course_info(self):
-        return self._course.course_info()
+        """
+        displays string of the non-section specific course
+        identification info
+        """
+        return self._course.course_info
 
     def get_enrollment_total(self):
         from src.Database.CourseSectionMapper import CourseSectionMapper
@@ -69,11 +99,11 @@ class CourseSection():
 
     @property
     def course_id(self):
-        return self.course.course_id
+        return self._course.course_id
 
     @property
     def department(self):
-        return self.course.department
+        return self._course.department
 
     @property
     def capacity(self):
@@ -81,12 +111,12 @@ class CourseSection():
 
     @property
     def instructor(self):
-        if not self._instructor:
-            from src.Factories.UserEntityFactory import UserEntityFactory
-            factory = UserEntityFactory.getInstance()
-            self._instructor = factory.build_from_id(
-                self._loading_data['instructor_id'])
-        return self._instructor
+        # importing here to avoid circular import error
+        from src.Factories.UserEntityFactory import UserEntityFactory
+        factory = UserEntityFactory.getInstance()
+        instructor = factory.build_from_id(
+            self._loading_data['instructor_id'])
+        return instructor
 
     @property
     def section_number(self):
@@ -98,24 +128,22 @@ class CourseSection():
 
     @property
     def timeslot(self):
-        if not self._timeslot:
-            self.__load_timeslot()
-        return self._timeslot
+        return self.__load_timeslot()
 
     def __load_timeslot(self):
         mapper = TimeSlotMapper.getInstance()
-        self._timeslot = mapper.load(self._loading_data['timeslot_id'])
+        return mapper.load(self._loading_data['timeslot_id'])
 
     @property
     def enrollment_open(self):
         return self._enrollment_open
 
-    @enrollment_open.setter
-    def enrollment_open(self, new_enrollment_open):
-        self._enrollment_open = new_enrollment_open
-
     @property
     def course_section_name(self):
+        """
+        returns a string representing section identification
+        information in a human-intuitive form
+        """
         kwargs = {
             'department': self.department,
             'course_id': self.course_id,
@@ -135,7 +163,6 @@ class CourseSection():
             'course': self.course.jsonify(),
             'quarter': self.quarter,
             'capacity': self.capacity,
-            'loading_data': self._loading_data,
             'instructor': self.instructor.jsonify(),
             'timeslot': self.timeslot.jsonify(),
             'enrollment_count': self.get_enrollment_total(),

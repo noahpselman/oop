@@ -4,14 +4,19 @@ from typing import List
 
 
 class TimeSlot():
+    """
+    holds information relevant for class time slots
+    also has a super conveninent method for making
+    sure two timeslots don't overlap
+    """
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, *, start_time, end_time, days) -> None:
         """
         kwargs are just the things you see in this here constructor
         """
-        self._start_time: time = kwargs['start_time']
-        self._end_time: time = kwargs['end_time']
-        self._days: List[str] = kwargs['days']
+        self._start_time: time = start_time
+        self._end_time: time = end_time
+        self._days: List[str] = days
 
     @property
     def start_time(self):
@@ -34,8 +39,8 @@ class TimeSlot():
             for other_d in other_time_slot.days:
                 if d == other_d:
                     overlapping_days.append(
-                        (self.end_time < other_time_slot.start_time) or (
-                            self.start_time > other_time_slot.end_time))
+                        (self.end_time <= other_time_slot.start_time) or (
+                            self.start_time >= other_time_slot.end_time))
         return all(overlapping_days)
 
     def __repr__(self):

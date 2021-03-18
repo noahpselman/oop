@@ -1,45 +1,42 @@
 from __future__ import annotations
 from src.util import get_current_quarter
-from src.Controllers.Registrar import Registrar
-from src.Factories.EnrollmentFactory import EnrollmentFactory
-from src.Database.Mapper import Mapper
-from typing import List
-# from src.classes.UserMainController import StudentMainController
 from src.Database.StudentMapper import StudentMapper
-
-# from src.classes.CourseSection import CourseSection
-# from src.classes.StudentState import *
-# from src.classes.User import User
 
 
 class Student():
+    """
+    responsible for storing data that belongs to student
+    relevant for actions like registering for courses
+    or making requests
 
-    # def __init__(self, university_id: str, name: str) -> None:
-    #     super().__init__(university_id, name)
+    some attributes are instead properties:
+        -restrictions
+        -coures_history
+        -current_courses
+
+    they are lazily loaded as the property is called
+    this ensures the user interface will always display
+    the most up-to-date values for these variables
+
+    note the student does not have methods to register
+    for courses or make requests itself
+    this is because the student object would have the pass
+    itself as an argument in either of these methods, as the
+    respective controllers need to retrieve idiosyncratic
+    information from the student.  it saves a step to just
+    have the caller (the main controller) directly pass the
+    student to the registrar or permission manager
+
+    there is a jsonify method which creates a json
+    object ready to export
+    """
 
     def __init__(self, user_data: User):
         """
-        should I inject the mapper dependency
         """
-        # self._state = OpenStudentState(self)
         self._user_data: User = user_data
         self._exp_grad_date: str = None
         self._major: str = None
-        self._course_history = []
-        self._restrictions: List[Restriction] = []
-        self._current_courses = self.load_courses_by_quarter(
-            get_current_quarter())
-
-        self.__load_course_history()
-
-        # self._controller = StudentMainController.get_instance()
-
-        # self._load()
-        # self.transition_to(OpenStudentState(self))
-
-    # course history could be stored as a list of
-    # strings of course_ids or course participation
-    # objects - will need to weigh the pros/cons
 
     def __repr__(self):
         return f"""{self.__class__.__name__} {self.user_data.id} with major {self.major}"""
@@ -72,50 +69,36 @@ class Student():
 
     @major.setter
     def major(self, new_major):
-        """
-        TODO check major is a department
-        """
         self._major = new_major
 
     @property
     def restrictions(self):
-        return self._restrictions
+        return self.__load_restrictions()
 
-    @restrictions.setter
-    def restrictions(self, new_restrictions):
-        self._restrictions = new_restrictions
+    def __load_restrictions(self):
+        mapper = StudentMapper.getInstance()
+        restrictions = mapper.load_student_restrictions(self.id)
+        return restrictions
 
     @property
     def course_history(self):
-        print("course history getter called from student")
-        if not self._course_history:
-            self.__load_course_history()
-        return self._course_history
+        return self.__load_course_history()
 
     def __load_course_history(self):
-        print("loading historic courses in student")
         mapper = StudentMapper.getInstance()
-        enrollments = mapper.load_course_history(self)
-        self._course_history = enrollments
+        enrollments = mapper.load_course_history(self.id)
+        return enrollments
 
     @property
     def current_courses(self):
         print("current courses getter called from student")
-        self._current_courses = self.load_courses_by_quarter(
+        courses = self.get_courses_by_quarter(
             get_current_quarter())
-        return self._current_courses
+        return courses
 
-    # def __load_current_courses(self):
-    #     print("loading current courses in student")
-    #     mapper = StudentMapper.getInstance()
-    #     current_courses = mapper.load_current_courses(self)
-    #     self._current_courses = current_courses
-        # enrollment_factory = EnrollmentFactory.getInstance()
-        # enrollment_factory.build(self)
-
-    def load_courses_by_quarter(self, quarter: str):
+    def get_courses_by_quarter(self, quarter: str):
         mapper = StudentMapper.getInstance()
-        courses = mapper.load_courses_by_quarter(self, quarter)
+        courses = mapper.load_courses_by_quarter(student=self, quarter=quarter)
         return courses
 
     @property
@@ -134,11 +117,11 @@ class Student():
     def full_name(self):
         return self.user_data.full_name
 
-    def register_for_course(self, registrar: Registrar, course_section: CourseSection):
-        return registrar.register_for_course(self, course_section)
+    # def register_for_course(self, registrar: Registrar, course_section: CourseSection):
+    #     return registrar.register_for_course(self, course_section)
 
-    def make_request(self, request_policy: RequestPolicy, course_section: CourseSection):
-        return self.make_request(request_policy, course_section)
+    # def make_request(self, request_policy: RequestPolicy, course_section: CourseSection):
+    #     return self.make_request(request_policy, course_section)
 
     def jsonify(self):
         result = {
@@ -152,8 +135,3 @@ class Student():
             "current_courses": [c.jsonify() for c in self.current_courses]
         }
         return result
-
-    # def _load(self):
-    #     print("student calling load")
-    #     mapper = StudentMapper.getInstance()
-    #     mapper.load(self)

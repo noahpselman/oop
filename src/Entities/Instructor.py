@@ -23,7 +23,7 @@ class Instructor():
 
     def jsonify(self):
         return {
-            'user_data': self.user_data.jsonify(),
+            'user_data': self._user_data.jsonify(),
             'department': self.department
         }
 

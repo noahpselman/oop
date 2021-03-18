@@ -8,6 +8,15 @@ from src.Entities.EnrollmentObject import EnrollmentObject
 
 
 class EnrollmentFactory():
+    """
+    singleton
+    enrollment objects have a lot of paramenters so this
+    class mediates the connections between objects that want to create
+    enrollment objects and its mapper
+
+    in all honestly this is probably superfluous and could be merged
+    with the mapper
+    """
 
     __instance = None
 

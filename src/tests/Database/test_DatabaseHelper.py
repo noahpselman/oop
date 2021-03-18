@@ -84,7 +84,7 @@ def test_load_student_by_id():
 def test_load_student_restriction():
     db_helper = DatabaseHelper.getInstance()
     mock_db = Mock()
-    rv = ['TUITION', 'LIBRARY']
+    rv = [['TUITION'], ['LIBRARY']]
     mock_db.find_all.return_value = rv
     db_helper.db = mock_db
     result = db_helper.load_student_restrictions(102)
@@ -94,7 +94,7 @@ def test_load_student_restriction():
         'filter': {'student_restrictions': {'university_id': {'value': 102, 'op': '='}}}
     }
     mock_db.find_all.assert_called_once_with(**args)
-    assert result == rv
+    assert result == ['TUITION', 'LIBRARY']
 
 
 def test_load_enrollment_by_student_quarter():
@@ -266,7 +266,7 @@ def test_load_prereqs_by_course_id():
         'select': {'prereqs': ["course_id", "course_department", "prereq_id", "prereq_department"]},
         'filter': {'prereqs': {
             'course_id': {'value': 222, 'op': '='},
-            'department': {'value': 'BLAH', 'op': '='}
+            'course_department': {'value': 'BLAH', 'op': '='}
         }
         }
     }
@@ -379,10 +379,11 @@ def test_search_course_sections():
         'course_id': 210,
         'instructor': 'Prof Name'
     }
-    
+
     result = db_helper.search_course_sections(search_dict)
     mock_db.find_all.assert_called_once_with(**args)
     assert result == rv
+
 
 def test_load_department_email():
     db_helper = DatabaseHelper.getInstance()
@@ -415,7 +416,9 @@ def test_insert_new_enrollment():
         'state': 'COMPLETE'
     }
     db_helper.insert_new_enrollment(new_enrollment)
-    mock_db.create.assert_called_once_with(table='enrollment', values_dict=new_enrollment)
+    mock_db.create.assert_called_once_with(
+        table='enrollment', values_dict=new_enrollment)
+
 
 def test_delete_enrollment():
     db_helper = DatabaseHelper.getInstance()
@@ -436,8 +439,6 @@ def test_delete_enrollment():
             'quarter': {'value': 'WINTER 2021', 'op': '='},
             'student_id': {'value': 102, 'op': '='}
         }}
-        
+
     db_helper.delete_enrollment(**to_delete)
     mock_db.delete.assert_called_once_with(table='enrollment', filter=filter)
-
-

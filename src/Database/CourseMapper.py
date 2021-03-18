@@ -23,10 +23,13 @@ class CourseMapper(Mapper):
             CourseMapper.__instance = self
             super().__init__()
 
-    def load(self, **kwargs):
+    def load(self, *, course_id: str, department: str):
         db_helper = DatabaseHelper.getInstance()
-        loaded_data = db_helper.load_course_by_course_id(**kwargs)
-        prereqs = self.__load_prereqs(kwargs['course_id'])
+
+        loaded_data = db_helper.load_course_by_course_id(
+            course_id=course_id, department=department)
+        prereqs = self.__load_prereqs(
+            course_id=course_id, department=department)
         loaded_data['prereqs'] = prereqs
         if loaded_data.get('lab_id'):
             lab = self.__load_lab(lab_id=loaded_data['lab_id'],
@@ -38,15 +41,13 @@ class CourseMapper(Mapper):
     def __load_lab(self, *, lab_id: str, department: str):
         return self.load(course_id=lab_id, department=department)
 
-    def __load_prereqs(self, course_id: str):
+    def __load_prereqs(self, *, course_id: str, department: str):
         db_helper = DatabaseHelper.getInstance()
-        loaded_data = db_helper.load_prereqs_by_course_id(course_id)
+        loaded_data = db_helper.load_prereqs_by_course_id(
+            course_id=course_id, department=department)
         prereqs = []
         for d in loaded_data:
             prereq = make_course_index(
                 course_id=d['prereq_id'], department=d['prereq_department'])
             prereqs.append(prereq)
         return prereqs
-
-    def save(self):
-        pass

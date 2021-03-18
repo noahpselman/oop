@@ -1,10 +1,16 @@
 from __future__ import annotations
-from src.Entities.CourseSection import CourseSection
 from src.Database.DatabaseHelper import DatabaseHelper
 from src.util import make_section_index, get_system_email
 
 
 class Request():
+    """
+    responsibility is to respond to messages necessary for creating
+    a request.  requests are eventually inserted into enrollment
+    table with a state of pending or tentative or complete
+
+    subclasses have a state and recipient email method
+    """
 
     def __init__(self, *, student: Student, course_section: CourseSection):
         self.student = student

@@ -1,12 +1,21 @@
 from src.Database.CourseSectionMapper import CourseSectionMapper
-from src.Database.CourseMapper import CourseMapper
-from src.Entities.TimeSlot import TimeSlot
 from src.Entities.CourseSection import CourseSection
-from src.Entities.Course import Course
-from src.Entities.CourseSectionWarehouse import CourseSectionWarehouse
 
 
 class CourseSectionFactory():
+    """
+    singleton
+    responsibility is to create a single creation point
+    for course section objects
+
+    course section mapper will take care of the details of
+    loading the data from the database (including composing
+    objects) from db
+
+    all the factory does is call the correct method on the
+    mapper and piece the data together to deliver a
+    course section object
+    """
 
     __instance = None
 
@@ -24,39 +33,42 @@ class CourseSectionFactory():
         else:
             CourseSectionFactory.__instance = self
 
-        self.warehouse = CourseSectionWarehouse.getInstance()
-
-    def build_course_sections(self, data):
+    def build_course_sections(self, course_section_data):
         """
-        data is list of dicts in which key-val pairs correspond to
+        course_section_data is list of dicts in which key-val pairs correspond to
         kwargs in build course section
         """
-        print("data", data)
-        return [self.build_course_section(**row) for row in data]
+        return [self.build_course_section(**row) for row in course_section_data]
 
-    def build_course_section(self, **kwargs):
+    def build_course_section(self, *,
+                             course_id: str, department: str, quarter: str,
+                             section_number: str, **kwargs):
         """
-        kwargs must include:
-            department: str
-            course_id: str
-            quarter: str
-            section_number: str
+        kwargs are here to allow other objects to use this method without
+        knowing the specific arguments - instead they can just toss
+        whatever comes back from the database
         """
-        print("build course section called in course seciton factory")
         course_section_mappper = CourseSectionMapper.getInstance()
-        course_section = course_section_mappper.load(**kwargs)
+        course_section_data = course_section_mappper.load(
+            course_id=course_id, section_number=section_number,
+            department=department, quarter=quarter)
+
+        # needs to be done because course_section_data contains
+        # keys that are not parameters to course_section
+        course_section_kwargs = {
+            'section_number': course_section_data['section_number'],
+            'enrollment_open': course_section_data['enrollment_open'],
+            'capacity': course_section_data['capacity'],
+            'quarter': course_section_data['quarter'],
+            'state': course_section_data['state'],
+            'instructor_permission_required': course_section_data['instructor_permission_required'],
+            'course': course_section_data['course'],
+            'data': {
+                'timeslot_id': course_section_data['timeslot'],
+                'instructor_id': course_section_data['instructor_id']
+            }
+        }
+
+        course_section = CourseSection(**course_section_kwargs)
+
         return course_section
-
-        # course = self.__build_course(
-        #     course_id=kwargs['course_id'], department=kwargs['department'])
-        # kwargs['course'] = course
-        # print(course)
-
-        # timeslot = TimeSlot()
-        # course_section = CourseSection(kwargs)
-        # mapper = CourseSectionMapper.getIn
-
-    # def __build_course(self, course_id: str, department: str):
-    #     mapper = CourseMapper.getInstance()
-    #     course = mapper.load(course_id=course_id, department=department)
-    #     return course

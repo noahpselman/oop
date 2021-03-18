@@ -131,6 +131,19 @@ input {
   font-size: 14px;
 }
 
+#current-courses-headline {
+  display: flex;
+  justify-content: space-between;
+}
+
+#quarter-select-holder {
+  display: flex;
+  justify-content: space-between;
+}
+#quarter-dropdown-label {
+  padding-right: 5px;
+}
+
 /* COURSE CONTAINER */
 .course-container {
   width: 80%;
@@ -149,7 +162,7 @@ input {
   margin-top: 5px;
   display: flex;
   justify-content: space-between;
-  width: 100%;
+  /* width: 100%; */
 }
 
 /* .drop-button {
@@ -172,13 +185,20 @@ input {
   display: block;
   z-index: 1;
   background-color: #eee;
-  width: fit-content;
+  width: 600px;
   /* padding: 20px; */
   border-radius: 5px;
   position: fixed;
+  height: 50%;
   top: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
+  border: solid 1px #555;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.popup-body {
+  margin: 0 5px;
 }
 
 .popup-surrounder {
@@ -205,9 +225,15 @@ input {
 
 .popup-content {
   padding: 8px;
+  margin: auto;
 }
 
 /* SEARCH RESULT */
+#search-section-heading-container {
+  display: flex;
+  justify-content: space-between;
+}
+
 .search-result-item {
   margin: 8px auto;
   padding: 8px;
@@ -221,17 +247,42 @@ input {
 .search-result-item:hover {
   background-color: #eee;
 }
+.popup-button-holder {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.enrollment-open-label {
+  text-align: right;
+}
 
 .close-button,
-.register-button,
-.drop-button {
+.popup-button,
+.drop-button,
+.register-button {
   cursor: pointer;
+  width: 100px;
+
   background-color: #e69b12;
   text-align: center;
+  flex-grow: 1;
   border-radius: 5px;
+  padding: auto;
+  /* margin: auto; */
+  /* max-width: 50$; */
+
+  border: solid 0.2px #555;
 }
+
+.register-button {
+  margin-left: auto;
+}
+
 .register-button:hover,
-.drop-button:hover {
+.drop-button:hover,
+.popup-button:hover,
+.close-button:hover {
   background-color: #800104;
   color: #eee;
 }

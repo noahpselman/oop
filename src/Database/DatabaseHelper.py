@@ -134,7 +134,7 @@ class DatabaseHelper():
         }
         results = self.db.find_all(
             tables=tables, select=select, filter=filter)
-        rv = [r for r in results]
+        rv = [r[0] for r in results]
         return rv
 
     def load_enrollment_by_student_quarter(self, *, student_id: str, quarter: str):
@@ -291,7 +291,7 @@ class DatabaseHelper():
         filter = {
             'prereqs': {
                 'course_id': {'value': course_id, 'op': '='},
-                'department': {'value': department, 'op': '='}
+                'course_department': {'value': department, 'op': '='}
             }
         }
         select = {
@@ -334,7 +334,7 @@ class DatabaseHelper():
             }
         }
 
-        self.db.delete(table="enrollment", filter=filter)
+        return self.db.delete(table="enrollment", filter=filter)
 
     def search_course_sections(self, search_dict):
         """
@@ -382,10 +382,10 @@ class DatabaseHelper():
     def load_department_email(self, department: str):
         tables = ['users', 'department']
         filter = {'department': {
-            'department_name': {'value': 'YAWN', 'op': '='}}
+            'department_name': {'value': department, 'op': '='}}
         }
         select = {"users": ["email"]}
-        on = {'department': {'users': "university"}}
+        on = {'department': {'chair' : {'users': "university_id"}}}
         result = self.db.find_one(
             tables=tables, select=select, filter=filter, on=on)
-        return result
+        return result[0]

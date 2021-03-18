@@ -1,6 +1,5 @@
 
 import React from 'react'
-import Modal from './Components/Modal'
 import './App.css';
 // import LoginForm from './Components/LoginForm'
 
@@ -12,28 +11,25 @@ class App extends React.Component {
             userId: localStorage.getItem('userId') || "",
             password: localStorage.getItem('password') || "",
             entityData: JSON.parse(localStorage.getItem('entityData')) || {},
+            entityDataLoaded: JSON.parse(localStorage.getItem('entityDataLoaded')) || false,
             entityType: localStorage.getItem('entityType') || "",
+            currentQuarter: JSON.parse(localStorage.getItem('currentQuarter')) || "",
+            displayCourses: JSON.parse(localStorage.getItem('displayCourses')) || "",
             searchInstructor: "",
             searchDepartment: "",
             searchCourseNumber: "",
-            currentQuarter: "",
-            regFail: false,
-            popupMessage: [],
             searchResult: {},
             resultsFound: false,
-            overloadReqMsg: false,
-            instrPermMsg: false
+            popupMessage: [],
+            showPopup: false,
+            popupHeading: "",
+            popupButton: "",
+            popupSearchResult: [],
+            registrationAttemptCourse: ""
+
         }
         // this.getInitialState()
 
-    }
-
-
-
-    getInitialState = () => {
-        console.log("getting initial state")
-        this.setState({ entityType: localStorage.getItem('entityType') })
-        this.setState({ entityData: JSON.parse(localStorage.getItem('entityData')) })
     }
 
 
@@ -56,13 +52,12 @@ class App extends React.Component {
     }
     handlePasswordChange = (e) => {
         e.preventDefault();
-        this.setState({ password: e.target.value },
-            () => { localStorage.setItem('password', e.target.value) })
+        this.setState({ password: e.target.value })
     }
     handleLoginSubmit = (e) => {
 
         e.preventDefault();
-        console.log(`submitting ${this.state.user_id}`)
+        console.log(`submitting ${this.state.userId}`)
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -81,30 +76,63 @@ class App extends React.Component {
         console.log('handleIncomingData called')
         console.log(data)
 
-        const loginSuccess = data.loginSuccess
+        const loginSuccess = Boolean(data.loginSuccess)
         if (loginSuccess) {
-            console.log("set user state called")
-            this.setUserStates(data)
+            this.setState({ loggedIn: true },
+                () => localStorage.setItem('loggedIn', JSON.stringify(this.state.loggedIn)))
+            this.loadUser()
         }
         else {
+            console.log('about to reset state')
             this.resetState()
         }
     }
 
-    setUserStates = (data) => {
+    loadUser = () => {
+        console.log(`loadUser called`)
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.state.userId, logged_in: this.state.loggedIn })
+        };
+        const url = '/user'
+        fetch(url, requestOptions)
+            .then(res => res.json())
+            .then(data => this.handleIncomingUserData(data))
+    }
+
+    handleIncomingUserData = (data) => {
+        console.log('handle incoming user data called')
+        console.log(data)
+        this.setInitialState(data)
+    }
+
+
+    setInitialState = (data) => {
+        console.log("set user states called")
         this.setState({ entityType: data.entityData.user_data.user_type },
             () => localStorage.setItem('entityType', this.state.entityType))
         this.setState({ entityData: data.entityData },
             () => localStorage.setItem('entityData', JSON.stringify(this.state.entityData)))
-        this.setState({ loggedIn: true },
-            () => localStorage.setItem('loggedIn', true))
+        this.setState({ currentQuarter: data.currentQuarter },
+            () => localStorage.setItem('currentQuarter', JSON.stringify(this.state.currentQuarter)))
+        this.setState({ displayCourses: this.state.entityData.current_courses },
+            () => localStorage.setItem('displayCourses', JSON.stringify(this.state.entityData.current_courses)))
+        this.setState({ entityDataLoaded: true },
+            () => localStorage.setItem('entityDataLoaded', JSON.stringify(this.state.entityDataLoaded)))
+    }
+
+    setCourseChangeState = (data) => {
+        this.setState({ entityData: data.entityData },
+            () => localStorage.setItem('entityData', JSON.stringify(this.state.entityData)))
+        this.requestCurrentCourses()
     }
 
     handleSearchSubmit = (e) => {
         console.log("handle search submit called")
         e.preventDefault()
         console.log(e.target)
-        let queryParams = []
+        let queryParams = [`quarter=${this.state.currentQuarter}`]
         if (this.state.searchInstructor) {
             queryParams.push(`instructor=${this.state.searchInstructor}`)
         }
@@ -148,59 +176,136 @@ class App extends React.Component {
             .then(data => this.handleDropData(data))
     }
 
-
-
-
-
     handleCourseRegister = (e) => {
         console.log("handle course registration called")
-        // this.setState({currentRegisterCourse: e.target.attributes.attri})
-        if (this.state.entityData.current_courses.length > this.state.entityData.max_enrollment) {
+        let sectionIndex = e.target.attributes.sectionIndex.nodeValue
+        let instrPermReq = e.target.attributes.instructor_permission.nodeValue === 'required'
+        let overloadReq = this.state.entityData.max_enrollment <= this.state.displayCourses.length
+        console.log(sectionIndex, instrPermReq, overloadReq)
+        console.log("max enrollment", this.state.entityData.max_enrollment)
+        console.log("display courses length", this.state.displayCourses.length)
+        let button = 'register'
+        let msg = `Register for ${sectionIndex}`
+        if (instrPermReq) {
+            button = 'instrPerm'
+            msg = 'This course requires instructor permission'
+        }
+        else if (overloadReq) {
+            button = 'overload'
+            msg = 'Before you register for this course you must request to overload'
+        }
+        console.log(button)
 
-            this.setState({
-                overloadReqMsg: true,
-                popupMessage: ["Registering for another course will require you to request overload permission"]
-            })
-        }
-        else if (e.target.attributes.instrPerm) {
-            console.log('instr perm clause')
-            this.setState({
-                instrPermMsg: true,
-                popupMessage: ["To register for this class you must request instructor permission"]
-            })
-        }
-        else {
-            const requestOptions = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    logged_in: this.state.loggedIn,
-                    user_id: this.state.userId,
-                    section_index: e.target.attributes.sectionIndex.nodeValue,
-                    entity_data: this.state.entityData
-                })
-            };
-            const url = '/register'
-            fetch(url, requestOptions)
-                .then(res => res.json())
-                .then(data => this.handleRegisterData(data))
-            this.resetSearch()
-        }
 
+        this.setState({
+            registrationAttemptCourse: sectionIndex,
+            popupMessage: [msg],
+            popupHeading: "Course Registration Attempt",
+            popupSearchResult: [],
+            popupButton: button,
+            showPopup: true
+        })
+        // show pop up
+        // respond to popup buttons
 
     }
+
+    requestLab = (e) => {
+        e.preventDefault()
+        console.log("handle request lab hit")
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: this.state.userId,
+                section_index: this.state.registrationAttemptCourse,
+                lab_index: e.target.attributes.sectionIndex.nodeValue
+            })
+        };
+        const url = '/lab'
+        fetch(url, requestOptions)
+            .then(res => res.json())
+            .then(data => this.handleRegisterData(data))
+        this.resetSearch()
+        this.handlePopupClose()
+    }
+
+
+    requestRegister = (e) => {
+        e.preventDefault()
+        console.log("handle register register block hit")
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                logged_in: this.state.loggedIn,
+                user_id: this.state.userId,
+                section_index: this.state.registrationAttemptCourse,
+                entity_data: this.state.entityData
+            })
+        };
+        const url = '/register'
+        fetch(url, requestOptions)
+            .then(res => res.json())
+            .then(data => this.handleRegisterData(data))
+        this.resetSearch()
+        this.handlePopupClose()
+    }
+
+
+
 
     resetSearch = () => {
         this.setState({ resultsFound: false, searchResult: {} })
     }
 
     handleRegisterData = (data) => {
+        console.log("data from register", data)
         console.log(data)
         if (data.report.db_updated && data.report.success) {
-            this.setUserStates(data)
+            console.log("about to set state from handle register data")
+            this.setCourseChangeState(data)
         }
         else {
-            this.setPopupData(data)
+            this.setRegFailPopup(data)
+        }
+    }
+
+    setRegFailPopup = (data) => {
+        console.log('reg fail popup called')
+        console.log(data)
+
+        if (data.searchType) {
+            console.log("there is a search type son")
+            let msg
+            let heading
+            switch (data.searchType) {
+                case 'lab':
+                    msg = "You must first enroll in a lab"
+                    heading = "Choose a Lab"
+                    break;
+                case 'time_conflict':
+                    msg = "Choose a section at a different time"
+                    heading = "Time Conflict"
+                    break;
+            }
+            this.setState({
+                showPopup: true,
+                popupMessage: [msg],
+                popupSearchResult: data.searchResult,
+                popupButton: "none",
+                popupHeading: heading
+            })
+        }
+        else {
+
+            this.setState({
+                showPopup: true,
+                popupMessage: data.report.msgs,
+                popupSearchResult: [],
+                popupButton: "none",
+                popupHeading: "Registration Attempt Failed"
+            })
         }
     }
 
@@ -208,41 +313,176 @@ class App extends React.Component {
         console.log("handle drop data called")
         console.log(data)
         if (data.report.db_updated && data.report.success) {
-            this.setUserStates(data)
+            this.setCourseChangeState(data)
         }
         else {
-            this.setPopupData(data)
-
-
+            // this.setPopupData(data)
         }
     }
 
-    setPopupData = (data) => {
-        let fails = data.report.details.filter((item) => {
-            return !item.success
-        }).map((item) => {
-            return item.msg
-        })
-        console.log(fails)
-        this.setState({ popupMessage: fails })
-        this.setState({ regFail: true })
-        console.log('popup message state', this.state.popupMesssge)
-    }
+
     // console.log(this.state.entityType)
     resetState = () => {
         console.log("resetting state and localStorage")
         localStorage.clear()
-        this.setState({ loggedIn: false })
-        this.setState({ entityType: "" })
-        this.setState({ entityData: {} })
-        this.setState({ userId: "" })
-        this.setState({ password: "" })
+        this.setState({
+            loggedIn: false,
+            entityType: "",
+            entityData: {},
+            entityDataLoaded: false,
+            userId: "",
+            password: "",
+            showPopup: false,
+            popupHeading: "",
+            popupMessage: [],
+            popupButton: "",
+            popupSearchResult: []
+        })
     }
 
     handlePopupClose = () => {
-        this.setState({ regFail: false })
+        this.setState({
+            showPopup: false,
+            popupHeading: "",
+            popupMessage: [],
+            popupButton: "",
+            popupSearchResult: []
+        })
     }
 
+    handleQuarterChange = (e) => {
+        e.preventDefault()
+        console.log("handle quarter change")
+        console.log(e.target.value)
+        this.setState({ currentQuarter: e.target.value },
+            this.requestCurrentCourses)
+    }
+
+    requestCurrentCourses = () => {
+
+        localStorage.setItem('currentQuarter', JSON.stringify(this.state.currentQuarter))
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: this.state.userId,
+                quarter: this.state.currentQuarter
+            })
+        }
+        const url = '/currentcourses'
+        fetch(url, requestOptions)
+            .then(res => res.json())
+            .then(data => this.handleNewCurrentCourses(data))
+    }
+
+
+    handleNewCurrentCourses = (data) => {
+        console.log("handle new current courses called")
+        console.log(data)
+        this.setState({ displayCourses: data.courses })
+    }
+
+    handleInstructorPermission = (e) => {
+        console.log("handle instructor permission pressed")
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: this.state.userId,
+                section_index: this.state.registrationAttemptCourse,
+                permission_type: "instructor"
+            })
+        }
+        const url = '/permission'
+        fetch(url, requestOptions)
+            .then(res => res.json())
+            .then(data => this.handleIncomingPermissionResponse(data))
+    }
+
+    handleIncomingPermissionResponse = (data) => {
+        console.log("permission response data", data)
+        this.setState({
+            popupShow: true,
+            popupMessage: [`Permission request ${data.success ? 'successful' : 'unsuccessful'}.`],
+            popupSearchResult: [],
+            popupButton: "none",
+            popupHeading: "Permission Request"
+        })
+        this.requestCurrentCourses()
+
+
+    }
+
+    handleOverloadRequest = (e) => {
+        console.log("handle overload request clicked")
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: this.state.userId,
+                section_index: this.state.registrationAttemptCourse,
+                permission_type: "overload"
+            })
+        }
+        const url = '/permission'
+        fetch(url, requestOptions)
+            .then(res => res.json())
+            .then(data => this.handleIncomingPermissionResponse(data))
+    }
+
+
+    buildSearch = (list, clickFunction) => {
+        let searchResult = list.map((course) => {
+            let registerButton = (<div></div>)
+            let open = (
+                course.enrollment_open && (course.enrollment_count < course.capacity)
+            )
+
+            if (open) {
+                registerButton = (
+                    <div className="register-button"
+                        instructor_permission={course.instructor_permission_required ? "required" : "not required"}
+                        sectionIndex={course.section_index}
+                        onClick={clickFunction} >
+                        Register
+                    </div >
+                )
+            }
+            return (
+                <div className='search-result-item'>
+                    <div className='course-info'>
+                        <div className='course-data'>
+                            <p>{course.course.name}</p>
+                            <p>{course.section_index}</p>
+                        </div>
+                        <div className='other-course-data'>
+                            <p>Instructor: {course.instructor.user_data.full_name}</p>
+                            <p>{course.timeslot.start_time}-{course.timeslot.end_time} {course.timeslot.days}</p>
+                        </div>
+                    </div>
+                    <div className="course-enrollment">
+                        <div className='enrollment-info'>
+                            <p>Enrollment: {course.enrollment_count} / {course.capacity}</p>
+                            <p>Prerequisites: {course.course.prereqs.join(', ')}</p>
+                            <p>{course.instructor_permission_required ? "Instructor Permission Required" : ""}</p>
+                        </div>
+                        <div className='register-holder'>
+                            <p className='enrollment-open-label'>{open ? 'Open' : 'Closed'}</p>
+                            {registerButton}
+
+                        </div>
+                    </div>
+                </div>
+            )
+        })
+
+        let searchResults = (
+            <div className='section' id='search-result-container'>
+                {searchResult}
+            </div>
+        )
+        return searchResults
+    }
 
     render = () => {
         console.log("state in render", this.state)
@@ -254,17 +494,21 @@ class App extends React.Component {
         let logoutButton = (<div></div>)
         let search = (<div></div>)
         let popup = <div style={{ display: 'none' }}></div>
-        let searchResult = <div></div>
+        // let searchResult = <div></div>
         let searchResults = <div></div>
+        let popupButton = <div></div>
 
-        if (this.state.loggedIn) {
+        if (this.state.loggedIn && this.state.entityDataLoaded) {
             logoutButton = (
                 <div id='logout-button' className="navbar-item" onClick={this.handleLogout}>Logout</div>
             )
 
             search = (
                 <div className="section">
-                    < p className="search-header" > Search</p >
+                    <div id='search-section-heading-container'>
+                        < p className="search-header" > Search</p >
+                        <p id="search-quarter">Search Quarter: {this.state.currentQuarter}</p>
+                    </div>
                     <form onSubmit={this.handleSearchSubmit}>
                         <input onChange={this.handleSearchDepartmentChange} type="text" value={this.state.searchDepartment} placeholder="Department"></input>
                         <input onChange={this.handleSearchCourseNumberChange} type="text" value={this.state.searchCourseNumber} placeholder="Course Number"></input>
@@ -285,7 +529,7 @@ class App extends React.Component {
                 </div>
             )
 
-            currentCourse = this.state.entityData.current_courses.map((course) => {
+            currentCourse = this.state.displayCourses.map((course) => {
                 return (
                     <div className='course-container'>
                         <div className='course-info'>
@@ -301,10 +545,13 @@ class App extends React.Component {
                             </div>
                         </div>
                         <div className="course-enrollment">
-                            <div>
+                            <div className='enrollment-info'>
+                                {/* <p>Enrollment Status {course}</p> */}
                                 <p>Enrollment: {course.enrollment_count} / {course.capacity}</p>
                             </div>
-                            <div className="drop-button" sectionIndex={course.section_index} onClick={this.handleCourseDrop}>Drop</div>
+                            <div className="drop-holder">
+                                <div className="drop-button" sectionIndex={course.section_index} onClick={this.handleCourseDrop}>Drop</div>
+                            </div>
 
                         </div>
                     </div>
@@ -314,7 +561,19 @@ class App extends React.Component {
 
             currentCourses = (
                 <div className="section">
-                    Current Course
+                    <p>Note: Some enrollments may be tentative or pending</p>
+                    <div id='current-courses-headline'>
+                        <p>Current Course</p>
+                        <p>Currently Displaying: {this.state.currentQuarter}</p>
+                        <div id="quarter-select-holder">
+                            <p id="quarter-dropdown-label">Change Quarter: </p>
+                            <select id="quarter-dropdown" onChange={this.handleQuarterChange}>
+                                <option value="AUTUMN 2020">AUTUMN 2020</option>
+                                <option value="WINTER 2021">WINTER 2021</option>
+                                <option value="SPRING 2021">SPRING 2021</option>
+                            </select>
+                        </div>
+                    </div>
                     {currentCourse}
 
                 </div>
@@ -336,37 +595,53 @@ class App extends React.Component {
             )
 
 
-            let instrPermButton = <div></div>
-            if (this.state.instrPermMsg) {
-                <div className='popup-button' onClick={this.handleOverloadReq}>Request Permission</div>
-            }
-            let overloadReqButton = <div></div>
-            if (this.state.overloadReqMsg) {
-                <div className='popup-button' onClick={this.handleInstrPerm}>Request Permission</div>
-            }
-            if (this.state.regFail || this.state.instrPermMsg || this.state.overloadReqMsg) {
-                let popupContent = this.state.popupMessage.map((item) => {
-                    return (
-                        <li className="popup-item">{item}</li>
+            switch (this.state.popupButton) {
+                case "register":
+                    popupButton = (
+                        <div className='popup-button' onClick={this.requestRegister}>Register</div>
                     )
-                })
+                    break;
+                case "instrPerm":
+                    popupButton = (
+                        <div className='popup-button' onClick={this.handleInstructorPermission}>Request Instructor Permission</div>
+                    )
+                    break;
+                case "overload":
+                    popupButton = (
+                        <div className='popup-button' onClick={this.handleOverloadRequest}>Request Overload</div>
+                    )
+                    break;
+            }
 
+
+            let popupContent = this.state.popupMessage.map((item) => {
+                return (<li>{item}</li>)
+            })
+            let popupSearchResultContent = this.buildSearch(this.state.popupSearchResult, this.requestLab)
+            if (this.state.showPopup) {
 
                 popup = (
                     <div className='popup-surrounder'>
-                        <div className={this.state.popup ? 'popup' : 'popup-hidden'}>
+                        <div className={this.state.showPopup ? 'popup' : 'popup-hidden'}>
                             <div className="popup-header">
-                                <p>We weren't able to execute your request because of the following problems:</p>
+                                <p>{this.state.popupHeading}</p>
+
                             </div>
-                            <div className='popup-content'>
-                                <ul>
-                                    {popupContent}
-                                </ul>
-                            </div>
-                            <div className='popup-button-holder'>
-                                <div className='close-button' onClick={this.handlePopupClose}>Close</div>
-                                {instrPermButton}
-                                {overloadReqButton}
+                            <div className="popup-body">
+                                <div className='popup-content'>
+                                    <ul>
+                                        {popupContent}
+                                    </ul>
+                                </div>
+                                <div className='popup-search-holder'>
+                                    {popupSearchResultContent}
+                                </div>
+                                <div className='popup-button-holder'>
+                                    <div className='close-button' onClick={this.handlePopupClose}>Close</div>
+                                    {popupButton}
+                                    {/* {instrPermButton}
+                                {overloadReqButton} */}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -374,58 +649,60 @@ class App extends React.Component {
             }
 
 
+
             if (this.state.resultsFound) {
-                searchResult = this.state.searchResult.map((course) => {
-                    console.log("mapping course result")
-                    let registerButton = (<div></div>)
-                    let open = (
-                        course.enrollment_open && (course.enrollment_count < course.capacity)
-                    )
-                    console.log("instrPerm", course.instructor_permission_required)
+                searchResults = this.buildSearch(this.state.searchResult, this.handleCourseRegister)
+                // searchResult = this.state.searchResult.map((course) => {
+                //     console.log("mapping course result")
+                //     let registerButton = (<div></div>)
+                //     let open = (
+                //         course.enrollment_open && (course.enrollment_count < course.capacity)
+                //     )
+                //     console.log("instrPerm", course.instructor_permission_required)
 
-                    if (open) {
-                        registerButton = (
-                            <div className="register-button"
-                                open={open}
-                                test={5}
-                                sectionIndex={course.section_index}
-                                onClick={this.handleCourseRegister} >
-                                Register
-                            </div >
-                        )
-                    }
-                    return (
-                        <div className='search-result-item'>
-                            <div className='course-info'>
-                                <div className='course-data'>
-                                    <p>{course.course.name}</p>
-                                    <p>{course.section_index}</p>
-                                </div>
-                                <div className='other-course-data'>
-                                    <p>Instructor: {course.instructor.user_data.full_name}</p>
-                                    <p>{course.timeslot.start_time}-{course.timeslot.end_time} {course.timeslot.days}</p>
-                                </div>
-                            </div>
-                            <div className="course-enrollment">
-                                <div className='enrollment-info'>
-                                    <p>Enrollment: {course.enrollment_count} / {course.capacity}</p>
-                                    <p>Prerequisites: {course.course.prereqs.join(', ')}</p>
-                                </div>
-                                <div className='register-holder'>
-                                    <p>{open ? 'Open' : 'Closed'}</p>
-                                    {registerButton}
+                //     if (open) {
+                //         registerButton = (
+                //             <div className="register-button"
+                //                 instructor_permission={course.instructor_permission_required ? "required" : "not required"}
+                //                 sectionIndex={course.section_index}
+                //                 onClick={this.handleCourseRegister} >
+                //                 Register
+                //             </div >
+                //         )
+                //     }
+                //     return (
+                //         <div className='search-result-item'>
+                //             <div className='course-info'>
+                //                 <div className='course-data'>
+                //                     <p>{course.course.name}</p>
+                //                     <p>{course.section_index}</p>
+                //                 </div>
+                //                 <div className='other-course-data'>
+                //                     <p>Instructor: {course.instructor.user_data.full_name}</p>
+                //                     <p>{course.timeslot.start_time}-{course.timeslot.end_time} {course.timeslot.days}</p>
+                //                 </div>
+                //             </div>
+                //             <div className="course-enrollment">
+                //                 <div className='enrollment-info'>
+                //                     <p>Enrollment: {course.enrollment_count} / {course.capacity}</p>
+                //                     <p>Prerequisites: {course.course.prereqs.join(', ')}</p>
+                //                     <p>{course.instructor_permission_required ? "Instructor Permission Required" : ""}</p>
+                //                 </div>
+                //                 <div className='register-holder'>
+                //                     <p className='enrollment-open-label'>{open ? 'Open' : 'Closed'}</p>
+                //                     {registerButton}
 
-                                </div>
-                            </div>
-                        </div>
-                    )
-                })
+                //                 </div>
+                //             </div>
+                //         </div>
+                //     )
+                //     })
 
-                searchResults = (
-                    <div className='section' id='search-result-container'>
-                        {searchResult}
-                    </div>
-                )
+                //     searchResults = (
+                //         <div className='section' id='search-result-container'>
+                //             {searchResult}
+                //         </div>
+                //     )
             }
 
         }

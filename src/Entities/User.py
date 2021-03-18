@@ -4,6 +4,10 @@ from src.Database.UserMapper import UserMapper
 
 
 class User():
+    """
+    object that stores data specific to a user
+    it is held by Student (or subclasses) or instructor
+    """
 
     def __init__(self, user_id: str) -> None:
 

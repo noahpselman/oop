@@ -259,19 +259,6 @@ class Database:
 
         return self.execute_insert_delete(query, tuple(enrollment_data.values()))
 
-    def delete_enrollment(self, *, section_number: str, course_id: str, department: str, quarter):
-
-        filter = {
-            'enrollment': {
-                'section_number': {'value': section_number, 'op': '='},
-                'course_id': {'value': course_id, 'op': '='},
-                'department': {'value': department, 'op': '='},
-                'quarter': {'value': quarter, 'op': '='}
-            }
-        }
-
-        self.db.delete(table="enrollment", filter=filter)
-
     def delete_enrollment(self, **kwargs):
         query = """
         DELETE FROM enrollment

@@ -4,6 +4,14 @@ from src.util import make_course_index
 
 
 class Course():
+    """
+    responsibility is to hold data relevant to specific courses
+    (particularly data that may need to be checked by the reg
+    process)
+
+    courses are almost always held by course section objects
+    """
+
     def __init__(self, *, course_id: str, name: str, department: str, **kwargs) -> None:
         self._course_id = course_id
         self._name = name
@@ -12,6 +20,10 @@ class Course():
         self._is_lab = kwargs['is_lab']
         self._lab: Course = kwargs.get('lab', None)
         self._has_lab = bool(self._lab)
+
+    @property
+    def has_lab(self):
+        return self._has_lab
 
     @property
     def lab(self):
@@ -33,11 +45,16 @@ class Course():
     def prereqs(self):
         return self._prereqs
 
+    @property
     def course_info(self):
+        """
+        makes familiar string of course indentification
+        information
+        """
         return make_course_index(course_id=self.course_id, department=self.department)
 
     def __repr__(self):
-        return self.name + " " + self.course_info()
+        return self.name + " " + self.course_info
 
     def jsonify(self):
         result = {
@@ -45,6 +62,6 @@ class Course():
             'course_id': self.course_id,
             'department': self.department,
             'prereqs': self.prereqs,
-            'course_index': self.course_info()
+            'course_index': self.course_info
         }
         return result

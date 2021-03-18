@@ -1,6 +1,5 @@
 from src.Factories.CourseSectionFactory import CourseSectionFactory
 from src.Database.DatabaseHelper import DatabaseHelper
-from src.Entities.QueryObject import QueryObject
 
 
 class SearchManager():

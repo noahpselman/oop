@@ -32,6 +32,3 @@ class TimeSlotMapper(Mapper):
         }
         timeslot = TimeSlot(**timeslot_kwargs)
         return timeslot
-
-    def save(self):
-        pass

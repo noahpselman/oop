@@ -48,9 +48,6 @@ class SQLDatabase():
         except KeyError as e:
             print("Unable to connect to the databse with db_config")
             raise
-            # finally:
-            #     connection.close()
-            # return result
 
     def create(self, *, table, values_dict):
         """
@@ -68,10 +65,10 @@ class SQLDatabase():
             cur.execute(query, args)
             result = True
         except Exception as e:
-            logger = Logger.getInstance()
-            logger.log(context=self.__class__.__name__,
-                       method="create",
-                       msg=f"query: {query}; Excpetion {e}")
+            # logger = Logger.getInstance()
+            # logger.log(context=self.__class__.__name__,
+            #            method="create",
+            #            msg=f"query: {query}; Excpetion {e}")
             print(e)
             result = False
         finally:
@@ -87,10 +84,10 @@ class SQLDatabase():
             cur.execute(query, args)
             result = True
         except Exception as e:
-            logger = Logger.getInstance()
-            logger.log(context=self.__class__.__name__,
-                       method="delete",
-                       msg=f"query: {query}; Excpetion {e}")
+            # logger = Logger.getInstance()
+            # logger.log(context=self.__class__.__name__,
+            #            method="delete",
+            #            msg=f"query: {query}; Excpetion {e}")
             print(e)
             result = False
         finally:
@@ -105,10 +102,10 @@ class SQLDatabase():
             cur.execute(query, args)
             result = cur.fetchall()
         except Exception as e:
-            logger = Logger.getInstance()
-            logger.log(context=self.__class__.__name__,
-                       method="fetch_all",
-                       msg=f"query: {query}; Excpetion {e}")
+            # logger = Logger.getInstance()
+            # logger.log(context=self.__class__.__name__,
+            #            method="fetch_all",
+            #            msg=f"query: {query}; Excpetion {e}")
             print(e)
             result = None
 
@@ -124,16 +121,15 @@ class SQLDatabase():
         query, args = self.__build_find_query(select, tables, on, filter)
 
         cur = self.conn.cursor()
-        print("findone printing query", query)
-        print("findone printing args", args)
+
         try:
             cur.execute(query, args)
             result = cur.fetchone()
         except Exception as e:
-            logger = Logger.getInstance()
-            logger.log(context=self.__class__.__name__,
-                       method="fetch_all",
-                       msg=f"query: {query}; Excpetion {e}")
+            # logger = Logger.getInstance()
+            # logger.log(context=self.__class__.__name__,
+            #            method="fetch_all",
+            #            msg=f"query: {query}; Excpetion {e}")
             print(e)
             result = None
         finally:
@@ -236,18 +232,13 @@ class SQLDatabase():
         filter_list = []
         args_list = []
         for t, c in filter.items():
-            print(t)
-            print(c)
+
             table_filter_list = [f'{t}.{k} {v["op"]} %s' for k, v in c.items()]
             filter_list.extend(table_filter_list)
             args_list.extend([c['value'] for c in c.values()])
 
-        print("filter list", filter_list)
         filter_line = "WHERE " + " AND ".join(filter_list)
         args = tuple(args_list)
-
-        print("filter line", filter_line)
-        print("args", args)
 
         return (filter_line, args)
 
