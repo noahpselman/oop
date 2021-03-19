@@ -9,6 +9,10 @@ from psycopg2.extras import DictCursor
 class SQLDatabase():
     """
     CRUD operations sql db
+
+    TODO: move the "unpack" methods from db_helper to this class
+    this class should know how to translate its results back into
+    native python objects
     """
 
     __instance = None
@@ -244,18 +248,3 @@ class SQLDatabase():
         args = tuple(args_list)
 
         return (filter_line, args)
-
-    def __unpack_result(self, columns: list, result):
-        """
-        creates dictionary from db results
-        columns: tuple containing names of columns
-        result: result of fetch_one from db class
-        """
-        # return {col: result[col] for col in columns}
-        result_dict = {}
-        for col in columns:
-            result_dict[col] = result[col]
-        return result_dict
-
-    def __unpack_results(self, columns, results):
-        return [self.unpack_db_result(columns, r) for r in results]

@@ -3,6 +3,11 @@ from src.Email.Engine import Engine
 
 
 class Emailer():
+    """
+    silly little class that acts like it will send an
+    email using an engine but in reality just prints
+    a message
+    """
     __instance = None
 
     @staticmethod

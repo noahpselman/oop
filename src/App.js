@@ -652,57 +652,6 @@ class App extends React.Component {
 
             if (this.state.resultsFound) {
                 searchResults = this.buildSearch(this.state.searchResult, this.handleCourseRegister)
-                // searchResult = this.state.searchResult.map((course) => {
-                //     console.log("mapping course result")
-                //     let registerButton = (<div></div>)
-                //     let open = (
-                //         course.enrollment_open && (course.enrollment_count < course.capacity)
-                //     )
-                //     console.log("instrPerm", course.instructor_permission_required)
-
-                //     if (open) {
-                //         registerButton = (
-                //             <div className="register-button"
-                //                 instructor_permission={course.instructor_permission_required ? "required" : "not required"}
-                //                 sectionIndex={course.section_index}
-                //                 onClick={this.handleCourseRegister} >
-                //                 Register
-                //             </div >
-                //         )
-                //     }
-                //     return (
-                //         <div className='search-result-item'>
-                //             <div className='course-info'>
-                //                 <div className='course-data'>
-                //                     <p>{course.course.name}</p>
-                //                     <p>{course.section_index}</p>
-                //                 </div>
-                //                 <div className='other-course-data'>
-                //                     <p>Instructor: {course.instructor.user_data.full_name}</p>
-                //                     <p>{course.timeslot.start_time}-{course.timeslot.end_time} {course.timeslot.days}</p>
-                //                 </div>
-                //             </div>
-                //             <div className="course-enrollment">
-                //                 <div className='enrollment-info'>
-                //                     <p>Enrollment: {course.enrollment_count} / {course.capacity}</p>
-                //                     <p>Prerequisites: {course.course.prereqs.join(', ')}</p>
-                //                     <p>{course.instructor_permission_required ? "Instructor Permission Required" : ""}</p>
-                //                 </div>
-                //                 <div className='register-holder'>
-                //                     <p className='enrollment-open-label'>{open ? 'Open' : 'Closed'}</p>
-                //                     {registerButton}
-
-                //                 </div>
-                //             </div>
-                //         </div>
-                //     )
-                //     })
-
-                //     searchResults = (
-                //         <div className='section' id='search-result-container'>
-                //             {searchResult}
-                //         </div>
-                //     )
             }
 
         }
