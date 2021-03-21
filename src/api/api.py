@@ -21,9 +21,12 @@ def authenticate():
         user_id = data.get('user_id', '')
         password = data.get('password', '')
         result = controller.login(user_id, password)
+        print("result from auth", result)
         response = {
             "loginSuccess": result
         }
+        print("response:", response)
+
         # logger.log(context='Router', method='authenticate-post',
         #            msg=f'Authentication with data {request.json} evaluated to {result}')
         return response
@@ -77,6 +80,7 @@ def currentcourses():
 @app.route('/search', methods=['GET'])
 def search():
     print("search endpoint hit")
+    print(request.args)
 
     # logger.log(context='Router', method='search-get',
     #    msg=f'Search endpoint hit with args {request.args}')
@@ -86,8 +90,9 @@ def search():
     if result:
         course_sections = [cs.jsonify() for cs in result]
         response['searchResult'] = course_sections
-        # logger.log(context='Router', method='search-get',
-        #            msg=f'Search endpoint hit with args {request.args} found result')
+    print("search response", response)
+    # logger.log(context='Router', method='search-get',
+    #            msg=f'Search endpoint hit with args {request.args} found result')
     return response
 
 

@@ -12,19 +12,27 @@ code {
     monospace;
 } */
 
+body {
+  font-family: "Amatic SC", cursive;
+}
+
+.primary-color {
+  background-color: #800104;
+  color: #ccc;
+}
+
 /* HEADER */
 
 #global-wrapper {
-  background-color: #888;
+  /* background-color: #888; */
 }
 
 #content-wrapper {
   background-color: #fff;
-  width: 60%;
-  max-width: 800px;
+  /* width: 60%; */
+  max-width: 1200px;
   padding-bottom: 20px;
   margin: 0 auto 20px auto;
-  /* border-left: 1px solid #555; */
 }
 
 .section {
@@ -33,61 +41,42 @@ code {
   margin: 12px 0;
 }
 
+.section-header {
+  font-size: 24px;
+  font-weight: 900;
+}
+
 p {
   margin: 0;
   padding: 0;
 }
 
-#navbar {
-  background-color: #800104;
-  color: #ccc;
+.navbar {
   height: 60px;
-  display: flex;
+  font-size: 40px;
   padding: 0;
-  align-items: stretch;
-  justify-content: space-between;
-
-  margin-bottom: 8px;
-  /* padding: 12px 8px; */
+  font-weight: 900;
 }
 
-.navbar-item {
-  padding: 0px 10px;
-  /* margin: auto 16px; */
-  /* height: 100%; */
-  text-align: center;
-  font-size: 20px;
-  /* margin: auto 0; */
-}
+.nav-button {
+  height: 60px;
+  padding: 0 20px;
+  /* margin: 0 20px; */
 
-.navbar-item p {
-  /* height: 100%; */
-  padding: auto 0;
-}
-
-#navbar-button-holder:hover {
-  background-color: #555;
-}
-
-#logout-button {
-  align-self: center;
-  cursor: pointer;
-  height: 100%;
-  /* padding: 0; */
-}
-
-.navbar-item-content {
-  font-size: 16px;
-  padding: auto;
-  text-align: center;
-  padding: auto;
-  /* line-height: 100%; */
   /* margin: auto; */
 }
 
-/* LOGIN */
+.nav-item {
+  height: 100%;
+}
+
+.nav-button:hover {
+  background-color: #555;
+}
+
 #login-header {
-  font-size: 24px;
+  font-size: 32px;
+  font-weight: 900;
   margin: 0 0 12px 0;
   padding: 0;
   text-align: center;
@@ -96,12 +85,12 @@ p {
 form {
   margin: 0 auto;
 }
-
-#login-container {
-  margin: 0 auto;
-  max-width: 200px;
+#login {
+  margin: 50px auto;
+  max-width: 600px;
   padding: 16px;
   border: 1px solid #ccc;
+  font-size: 20px;
 }
 
 #login-submit {
@@ -119,16 +108,9 @@ input {
   margin: 8px 0;
 }
 
-/* USER DATA */
-/* #user-data {
-  padding: 12px;
-  border-top: 1px solid #ccc;
-  margin: 12px 0;
-} */
-
 .user-data-element {
   padding: 4px 0;
-  font-size: 14px;
+  font-size: 40px;
 }
 
 #current-courses-headline {
@@ -141,15 +123,17 @@ input {
   justify-content: space-between;
 }
 #quarter-dropdown-label {
+  font-size: 24px;
+  font-weight: 900;
   padding-right: 5px;
 }
 
-/* COURSE CONTAINER */
 .course-container {
   width: 80%;
   margin: 8px auto;
   padding: 8px;
   border-top: 1px solid #ccc;
+  font-size: 20px;
 }
 
 .course-info {
@@ -162,34 +146,24 @@ input {
   margin-top: 5px;
   display: flex;
   justify-content: space-between;
-  /* width: 100%; */
 }
 
-/* .drop-button {
-  width: 50%;
-  text-align: center;
-  padding: 8px;
-  background-color: #e69b12;
-  cursor: pointer;
+select {
+  font-size: 24px;
 }
-
-.drop-button:hover {
-  background-color: #800104;
-} */
 
 .popup-hidden {
   display: none;
 }
 
 .popup {
-  display: block;
+  font-size: 20px;
   z-index: 1;
   background-color: #eee;
-  width: 600px;
-  /* padding: 20px; */
+  width: 500px;
   border-radius: 5px;
   position: fixed;
-  height: 50%;
+  height: 40%;
   top: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -199,6 +173,9 @@ input {
 }
 .popup-body {
   margin: 0 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .popup-surrounder {
@@ -220,7 +197,7 @@ input {
   color: #ccc;
   padding: 12px;
   text-align: center;
-  font-size: 16px;
+  font-size: 32px;
 }
 
 .popup-content {
@@ -228,10 +205,27 @@ input {
   margin: auto;
 }
 
-/* SEARCH RESULT */
+#search-container {
+  /* max-width: 600px;
+  margin: auto; */
+  border: solid 1px #ccc;
+  width: fit-content;
+  padding: 20px;
+  margin: auto;
+}
+
+#search-form {
+  max-width: 600px;
+  font-size: 20px;
+}
+
 #search-section-heading-container {
   display: flex;
   justify-content: space-between;
+}
+
+#search-result-container {
+  font-size: 20px;
 }
 
 .search-result-item {
@@ -269,8 +263,6 @@ input {
   flex-grow: 1;
   border-radius: 5px;
   padding: auto;
-  /* margin: auto; */
-  /* max-width: 50$; */
 
   border: solid 0.2px #555;
 }

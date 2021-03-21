@@ -107,6 +107,7 @@ class DatabaseHelper():
         }
         result = self.db.find_one(
             tables=tables, select=select, filter=filter)
+        print('load user result', result)
         return self.unpack_db_result(LOAD_USER_COLUMNS, result)
         # result = self.db.load_user_by_id(university_id)
         # return self.unpack_db_result(LOAD_USER_COLUMNS, result)
