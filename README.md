@@ -1,3 +1,15 @@
+# University Course Enrollment System
+
+A primitive university course enrollment system done for my Object-Oriented Programming class.  The python backend is object oriented wherein each component follows the "SOLID" principles.  The react front end is less object oriented and communicates with the backend via a Flask API.  The front end was built quickly and needs refactoring.  
+The focus of the course was the structure of the backend and this is the most polished bit.
+
+## Features
+
+Students can search for courses and enroll/drop courses that they've searched for.  Students will only successfully enroll in courses for which they've met pre-requisites and the course's timeslot must fit into their schedule.  The backend is built such additional policies regarding whether students can successfully enroll in courses can be readily added because of the malleable framework.  All mapping of object to the database is done manually.  A database helper object is adapted such that any adapter with the fundamental database operations (ie find, update, insert) can be swapped in.
+
+Below is the readme as it was when I submitted the final project
+_______________________________________________________________________
+
 # Noah's OOP/Web Dev Final Project
 
 A note to OOP graders - i spent time on my front end because it is my final project for my web dev course.  It is due 3/21 so I will continually make changes until then.  If you want to be strict, you should grade the OOP-Final-Submission branch, on which I will (hopefully) stop making updates by the deadline.  BUT.... if you want to check out the version with the coolest UI please feel free to checkout the version on the main branch.
@@ -74,8 +86,8 @@ My application represents a prototype of a university course registration system
 Below are remaining items on my todo list that I didn't have time to resolve
 
 ##### UI STUFF
-- As of Wednesday, 3/17 my App.js is a heaping mess that follows no object-oriented principles.  While originally I hoped to do this, my esteemed Web Development professor advised my to just get everything working before I start refactoring in multiple files.  I understand that in react sharing a state between components living in different files can introduce some complexities that may have prevented me from delivering a functioning product.  I plan on refactoring the front end before my web development project is due on Sunday, 3/21
-- Generally the backend is ahead of the front end meaning that I haven't created a working user interface for all the features that the backend supports.  For example, I haven't build support for displaying a students course history or for allowing a student to change labs.  There are also things like drop buttons being able to drop a course without dropping it's lab - things are front end things I'd correct with more time.
+- As of Wednesday, 3/17 my App.js is a heaping mess that follows no object-oriented principles.  While originally I hoped to do this, my esteemed Web Development professor advised me to just get everything working before refactoring into multiple files.  I understand that in react sharing a state between components living in different files can introduce some complexities that may have prevented me from delivering a functioning product.  I plan on refactoring the front end before my web development project is due on Sunday, 3/21
+- Generally the backend is ahead of the front end meaning that I haven't created a working user interface for all the features that the backend supports.  For example, I haven't build support for displaying a student's course history or for allowing a student to change labs.  There are also things like drop buttons being able to drop a course without dropping it's lab - these are things I'd correct with more time.
 - Tentative and Pending enrollments (created when students request overload or instructor permission) display on the front end as normal courses
 - Currently students have an attribute called current courses - this a list of CourseSection objects because CourseSections have all the data that the front end might want to display.  In reality students should be holding Enrollments, objects that represent a students participation in a course and holds information particular to that relationship (ie if they're auditing or taking a course P/F and their grade).
 - Things are generally ugly
